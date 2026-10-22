@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>ValveTrack | Inspeção de válvulas</title>
+<style>
+:root{font-family:Segoe UI,Arial,sans-serif;color:#eef4fd;background:#0d1724;--line:#344d64;--muted:#b4c6d6;--sat:#ff6862}
+*{box-sizing:border-box}body{margin:0}header{background:#17283a;padding:19px 25px;border-bottom:1px solid #365065}h1{font-size:23px;margin:0 0 6px}p{color:var(--muted);font-size:13px;margin:4px 0;line-height:1.5}
+button,.filelabel,select,input,textarea{font:inherit}button,.filelabel{border:1px solid #577b9c;background:#264560;color:white;border-radius:7px;padding:9px 12px;cursor:pointer;font-size:12px}button:hover,.filelabel:hover{background:#376482}button:disabled{opacity:.45;cursor:not-allowed}button.primary{background:#1e8a64;border-color:#4fb38e;font-weight:700}button.primary:hover{background:#249a70}button.accent{background:#7c6120;border-color:#e3b94c}
+.workspace{padding:14px 25px;display:grid;grid-template-columns:repeat(3,minmax(170px,1fr)) auto;gap:11px;align-items:end;background:#142337;border-bottom:1px solid #334d64}
+.fieldlabel{font-size:12px;color:#d9e7f4;display:block}.workspace input,.workspace textarea,select{background:#0e1d2c;border:1px solid #4b6882;color:#fff;border-radius:7px;padding:8px 9px;width:100%;font-size:13px;margin-top:5px}.workspace textarea{resize:vertical;min-height:37px;max-height:120px}.workspaceActions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.workspaceActions button{white-space:nowrap}
+.ribbon{padding:10px 25px;background:#122c29;border-bottom:1px solid #336a59;color:#dcf9ee;font-size:13px}
+.toolbars{position:sticky;top:0;z-index:5;padding:11px 25px;background:#142131;border-bottom:1px solid #36516a;display:flex;flex-wrap:wrap;align-items:center;gap:8px}.toolbars input[type=search]{background:#0e1d2c;color:white;border:1px solid #4b6882;border-radius:7px;padding:9px;min-width:190px;font-size:13px}.toolbars select{margin:0;min-width:150px;width:auto}.spacer{flex:1}
+.metrics{padding:13px 25px;display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px;background:#0e1a28}.metric{background:#1c2b3e;padding:10px 12px;border:1px solid #344e67;border-radius:10px;font-size:12px;color:#bfd0e0}.metric b{display:block;color:#fff;font-size:22px;margin-top:3px}
+#flash{font-size:12px;color:#b4dec5;min-height:18px}
+.furnaceHeader{padding:18px 25px 7px}.furnaceTitle{font-size:20px;margin:0 0 3px}.furnaceDesc{font-size:12px;color:#bbcada}.zoneTitle{margin:13px 25px 0;padding:8px 12px;background:#192c41;border-left:4px solid #6e9cbf;border-radius:4px;font-size:13px;font-weight:700}.grid{padding:12px 25px 15px;display:grid;grid-template-columns:repeat(auto-fill,minmax(243px,1fr));gap:12px}
+.card{padding:13px;border-radius:11px;border:2px solid;min-width:0;break-inside:avoid}.card.air{background:linear-gradient(#153e65,#0f2e4b);border-color:#4082b8}.card.gas{background:linear-gradient(#896c18,#675109);border-color:#d3af39}.card.changed{box-shadow:inset 0 0 0 2px #fbfcff,0 0 0 2px #f1f7ff}.card.saved{border-style:solid}
+.headrow{display:flex;align-items:center;justify-content:space-between;gap:8px}.pill{font-size:11px;background:#ffffff27;border-radius:20px;padding:4px 8px;font-weight:700}.areaBadge{font-size:11px;opacity:.87}.name{color:white;font-size:14px;font-weight:700;background:transparent;border:0;border-bottom:1px solid #ffffff60;width:100%;padding:7px 0 6px;margin:3px 0 5px}.meta{font-size:11px;color:#f1f7fe;opacity:.92}.dial{width:146px;max-width:100%;display:block;margin:4px auto 0}.readout{font-size:19px;font-weight:800;text-align:center;margin:0 0 4px}.state{text-align:center;font-size:11px;font-weight:800;margin-bottom:7px;min-height:14px}.state.sat{color:#ffd0cd}.state.normal{color:#d3f7df}.state.pending{color:#e6eaf0}.previous{font-size:12px;line-height:1.55;border-radius:6px;background:#0000002b;padding:7px 8px;min-height:47px;margin-bottom:8px}.delta{font-weight:700}.delta.changed{color:#ffecc6}.delta.equal{color:#c5f4d4}.delta.pending{color:#f3d6aa}
+.quick{display:flex;gap:5px;justify-content:center;margin-bottom:7px}.quick button{background:#ffffff1d;border:1px solid #ffffff52;padding:5px 8px;border-radius:6px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:7px}.fields label{font-size:11px}.fields input{background:#0b19288c;border:1px solid #ffffff70;color:white;width:100%;border-radius:6px;padding:6px 7px;font-size:14px;margin-top:3px}.slider{width:100%;accent-color:#47c7ea;margin-top:10px}.obs{background:#0b19288c;border:1px solid #ffffff70;color:white;border-radius:6px;padding:7px 8px;width:100%;font-size:12px;margin-top:7px}.card button.clear{display:block;margin:7px 0 0 auto;background:#00000030;color:#fff;border-color:#ffffff42;padding:4px 8px}
+.card input:disabled,.card button:disabled{opacity:.72}.hidden{display:none!important}
+.historySection{margin:25px 25px 12px;border:1px solid #395572;border-radius:12px;overflow:hidden;background:#142338}.historyHeading{background:#1c344d;padding:14px 17px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.historyHeading h2{font-size:19px;margin:0}.historyBody{padding:15px}.historyTools{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:11px 0}.historyTools label{font-size:12px;min-width:155px}.historyTools select{display:block;margin-top:5px;min-width:200px}.historyTools .checkbox{min-width:0;white-space:nowrap;padding-bottom:8px;display:flex;align-items:center;gap:5px}.historyTools input[type=checkbox]{width:16px;height:16px}.historyList{overflow-x:auto}.historyTable{width:100%;border-collapse:collapse;font-size:12px}.historyTable th{text-align:left;background:#203a54;padding:9px}.historyTable td{padding:8px 9px;border-bottom:1px solid #344d65}.historyTable .number{text-align:right;font-variant-numeric:tabular-nums}.historyTable tr.modified{background:#4e392b}.historyTable tr.noComparison{color:#afc0d1}.historyTable tr:hover{background:#35506b}.historyTable tr.modified:hover{background:#634832}.historyTable tbody tr td:first-child{white-space:nowrap}.historyStats{color:#e7f1fc;font-size:13px;margin:8px 0}.historyArchives{max-height:160px;overflow-y:auto;border:1px solid #31506d;border-radius:8px;padding:5px 12px;margin-bottom:15px}.historyEntry{padding:7px 0;border-bottom:1px solid #2e4762;font-size:12px}.historyEntry:last-child{border-bottom:0}
+footer{padding:12px 25px 25px;color:#a6bcce;font-size:12px}
+@media(max-width:900px){.workspace{grid-template-columns:1fr 1fr}.workspaceActions{grid-column:span 2}.toolbars{position:static}}
+@media(max-width:540px){header,.workspace,.toolbars,.metrics,.historyBody{padding:12px}.workspace{display:block}.workspace .fieldlabel,.workspaceActions{margin-bottom:10px;display:block}.workspaceActions button{margin-bottom:4px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px;gap:7px}.card{padding:8px}.dial{width:112px}.zoneTitle{margin:12px 8px 3px}.furnaceHeader{padding:15px 8px 4px}.readout{font-size:16px}.fields{gap:4px}.meta{font-size:10px}.card .name{font-size:12px}.metrics{grid-template-columns:repeat(2,1fr)}.historySection{margin:10px 8px}.historyTools label select{min-width:150px}}
+@media print{body{background:#fff;color:#111}header,.workspace,.toolbars,.metrics,.quick,.fields,.slider,.obs,.clear,.historySection,footer{display:none!important}.grid{grid-template-columns:repeat(4,minmax(0,1fr));padding:2mm 4mm;gap:3mm}.card{box-shadow:none!important;background:#fff!important;color:#000!important;border-width:1px}.card.air{border-color:#4687bd;background:#e3f1fc!important}.card.gas{border-color:#cfad48;background:#ffefba!important}.card .name{color:#111}.card .meta,.card .previous,.card .areaBadge{color:#111}.state{color:#111!important}.furnaceHeader{padding:4mm 4mm 1mm}.zoneTitle{margin:3mm 4mm;background:#eee;color:#111}.previous{background:#fff!important}.furnaceTitle{color:#111}}
+
+.photoBtn{display:block;width:100%;margin:8px 0;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.50);font-weight:700}
+.photoCount{font-size:11px;text-align:center;color:#eaf7ff;min-height:14px}
+.photoOverlay{position:fixed;inset:0;background:#040b12ec;z-index:30;display:flex;align-items:center;justify-content:center;padding:10px}
+.photoPanel{max-height:96vh;overflow:auto;width:min(820px,98vw);background:#152940;border:1px solid #6385a0;border-radius:13px;padding:16px;box-shadow:0 14px 44px #0008}
+.photoHeader{display:flex;align-items:center;justify-content:space-between;gap:15px}.photoHeader h2{font-size:18px;margin:0}
+.photoActions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}.photoActions button{padding:8px 10px}
+.photoCanvas{display:block;width:auto;max-width:100%;max-height:55vh;margin:9px auto;border-radius:7px;border:1px solid #7b99b2;background:#091726}
+.photoReadout{padding:10px;border-radius:8px;background:#203952;color:#e9f4ff;font-size:13px;margin:8px 0;line-height:1.5}
+.photoInput{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:9px}.photoInput input{width:115px;color:white;border-radius:6px;border:1px solid #7592a9;background:#0a1828;padding:8px;font-size:17px}
+.photoPrimary{background:#14845c!important;border-color:#65cda5!important;font-weight:700}
+.photoPanel .filelabel{display:inline-block}
+.photoFoot{font-size:12px;color:#c4d5e4;margin-top:9px;line-height:1.5}
+@media print{.photoOverlay,.photoBtn,.photoCount{display:none!important}}
+
+.folderSync{padding:14px 25px;border-bottom:1px solid #3c5a72;background:#14293b;display:grid;gap:9px}
+.folderTitle{display:flex;align-items:flex-start;gap:11px;font-size:15px;color:#f5faff}
+.folderIcon{font-size:27px;line-height:1.2}
+.folderHint,.folderNote{font-size:12px;color:#bcd4e3;line-height:1.55;margin-top:3px}
+.folderTools{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#folderState{font-size:12px;color:#e8f7dc;flex:1;min-width:210px}
+#folderState.warning{color:#ffce94}
+#folderState.error{color:#ff9f99}
+.folderNote{margin:0 0 0 39px}
+@media(max-width:560px){.folderSync{padding:12px}.folderNote{margin-left:0}}
+
+/* Transferência móvel: sem serviços externos, adequada ao Chrome Android */
+.androidSync{margin:12px 25px;padding:13px 17px;border:1px solid #4b8199;border-radius:11px;background:linear-gradient(115deg,#152e46,#173348)}
+.androidTitle{display:flex;align-items:flex-start;gap:11px;font-size:14px;line-height:1.5}
+.androidIcon{font-size:26px}.androidHelp{font-size:12px;color:#d0e2ed;margin-top:3px}
+.androidActions{display:flex;flex-wrap:wrap;gap:9px;align-items:end;margin:12px 0}
+.androidActions label:not(.filelabel){font-size:12px;min-width:215px;flex:1}
+.androidActions select{width:100%;margin-top:3px;background:#0e1d2c;border:1px solid #5c839c;padding:8px 9px;border-radius:7px;color:#fff}
+.androidActions button,.androidActions .filelabel{min-height:40px}
+.androidState{font-size:12px;line-height:1.5;color:#bfd7e6}
+.androidState.warning{color:#ffe3a8}.androidState.error{color:#ffbdb6}.androidState.ok{color:#b8f2d8}
+@media(max-width:700px){.androidSync{margin:12px;padding:12px}.androidActions{display:grid;grid-template-columns:1fr 1fr}.androidActions>label:not(.filelabel){grid-column:1/-1}.androidActions button,.androidActions .filelabel{width:100%;padding:11px 8px;text-align:center}.workspace{padding:12px;grid-template-columns:1fr 1fr}.workspace>.fieldlabel:nth-child(3){grid-column:1/-1}.workspaceActions{grid-column:1/-1}.toolbars{padding:9px 12px}.metrics{padding:12px}.grid{padding:10px}.card{padding:10px}.historySection{margin:12px}.furnaceHeader{padding:12px}.zoneTitle{margin:10px 12px}}
+@media print{.androidSync{display:none!important}}
+
+.pipeline{padding:14px 25px 12px;background:#101f31;border-bottom:1px solid #345066}
+.pipeline h2{font-size:15px;margin:0 0 9px;color:#eef6ff}
+.pipelineSteps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pipelineStep{padding:10px 11px;background:#1b334c;border:1px solid #41637f;border-radius:9px;min-width:0}
+.pipelineStep strong{font-size:12px;display:block;margin-bottom:4px;color:#fff}
+.pipelineStep span{font-size:11px;color:#cfdeed;line-height:1.4;display:block}
+.pipelineDisclaimer{font-size:12px;color:#dfd9bc;margin-top:10px;line-height:1.45}
+.androidSync{border-left:4px solid #5ca4d5}
+.folderSync{border-left:4px solid #d3b558}
+@media(max-width:700px){.pipeline{padding:12px}.pipelineSteps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media print{.pipeline{display:none}}
+
+
+/* ===== AMT • Identidade de interface e hierarquia visual ===== */
+:root{color-scheme:light;--amt-orange:#F47D30;--amt-graphite:#555658;--amt-ink:#292B2D;--amt-bg:#F5F5F4;--amt-line:#DDDEDF;--amt-white:#FFF;--line:#DDDEDF;--muted:#66686B;--sat:#E43835; color:var(--amt-ink); background:var(--amt-bg)}
+body{background:var(--amt-bg);color:var(--amt-ink);font-family:"Segoe UI",Arial,sans-serif}
+header.amtHeader{padding:14px 24px 12px;background:#fff;color:var(--amt-ink);border-bottom:3px solid var(--amt-orange)}
+.brandLine{display:flex;gap:9px;align-items:center;color:var(--amt-graphite);font-weight:650;font-size:12px;letter-spacing:.05em}
+.brandGlyph{display:inline-block;width:16px;height:11px;border-top:5px solid var(--amt-orange);border-radius:55% 0 0 0;transform:rotate(-22deg);margin-right:2px}
+.brandDivider{height:12px;width:1px;background:#bbb}
+.brandContext{font-weight:700;color:var(--amt-orange)}
+header h1{font-size:20px;font-weight:700;margin:5px 0 0;color:#383A3C}
+.workspace{padding:12px 24px;grid-template-columns:minmax(170px,220px) minmax(180px,250px) minmax(110px,1fr) auto;align-items:end;gap:12px;background:#fff;border-bottom:1px solid var(--amt-line)}
+.fieldlabel{color:#5b5d5f;font-size:12px;font-weight:600}
+.workspace input,.workspace textarea,.workspace select,.toolbars select,.toolbars input[type=search],select{
+ background:#fff;color:var(--amt-ink);border:1px solid #CFD1D3;border-radius:6px;padding:9px 10px;font-size:13px}
+.workspace input:focus,.toolbars input:focus,.toolbars select:focus,.fields input:focus{outline:2px solid #F7B17F;outline-offset:0;border-color:#F47D30}
+.workspace textarea{min-height:34px}
+.workspaceActions{display:flex;flex-wrap:wrap;gap:7px}
+button,.filelabel{border-radius:6px;border:1px solid #D0D1D2;background:#fff;color:#494B4D;padding:9px 11px;font-weight:600;font-size:12px;box-shadow:none;transition:background .12s ease}
+button:hover,.filelabel:hover{background:#EFEFEF}
+button.primary,.photoPrimary{background:var(--amt-orange)!important;color:#fff!important;border-color:var(--amt-orange)!important}
+button.primary:hover,.photoPrimary:hover{background:#DC6A23!important}
+button.accent{background:#fff;color:var(--amt-ink);border-color:var(--amt-line)}
+button:disabled,.filelabel:disabled{opacity:.5}
+.noteDetails{min-width:0;align-self:end;position:relative}
+.noteDetails summary{cursor:pointer;border:1px solid #D6D6D6;border-radius:6px;padding:9px 11px;font-size:12px;font-weight:600;color:#555;background:#fff;list-style:none}
+.noteDetails summary:before{content:'+';color:#F47D30;font-weight:800;margin-right:8px}
+.noteDetails[open]{position:relative}
+.noteDetails .fieldlabel{display:block;margin-top:5px}
+.ribbon{background:#FDF3EA;border-bottom:1px solid #F0D9C9;color:#6D503C;padding:7px 24px;font-size:12px}
+.toolbars{background:#fff;border-bottom:1px solid var(--amt-line);padding:10px 24px;gap:8px;position:sticky;top:0}
+.toolbars input[type=search]{min-width:210px}
+.toolbars select{width:auto;min-width:140px;margin:0}
+.fileMenu{position:relative}
+.fileMenu summary{list-style:none;cursor:pointer;border:1px solid #D0D1D2;background:#fff;border-radius:6px;color:#555;padding:9px 16px;font-size:12px;font-weight:600}
+.fileMenu summary:after{content:' ▾';color:var(--amt-orange)}
+.fileMenu[open] .fileTools{z-index:15;position:absolute;right:0;top:calc(100% + 6px);background:#fff;box-shadow:0 12px 28px #0002;border:1px solid #DDDEDF;border-radius:8px;padding:10px;min-width:230px;display:flex;flex-direction:column;gap:7px}
+.fileTools button,.fileTools .filelabel{display:block;text-align:left;width:100%}
+.metrics{display:flex;gap:10px;padding:12px 24px;background:var(--amt-bg);overflow-x:auto}
+.metric{flex:1 0 125px;border:1px solid var(--amt-line);background:#fff;color:#68696B;padding:9px 12px;border-radius:8px;font-size:11px;white-space:nowrap}
+.metric b{color:var(--amt-graphite);font-size:21px;margin-top:2px;font-weight:700}
+#flash{margin:0!important;color:#555658!important;min-height:0!important;font-size:11px!important;padding:0 24px!important}
+.furnaceHeader{padding:18px 24px 4px;border-top:1px solid #e4e4e4;background:var(--amt-bg)}
+.furnaceTitle{font-size:19px;color:var(--amt-graphite);font-weight:700}
+.furnaceDesc,.meta,.folderHint,.folderNote,.androidHelp,.photoFoot,.pipeline,footer,header p{display:none!important}
+.zoneTitle{margin:9px 24px 1px;padding:8px 12px;background:#E8E8E7;color:#555658;border-left:4px solid #F47D30;border-radius:0 4px 4px 0;font-size:12px;font-weight:700}
+.grid{padding:10px 24px 12px;gap:11px;grid-template-columns:repeat(auto-fill,minmax(228px,1fr))}
+.card{box-shadow:none;border-radius:8px;padding:12px;border:1px solid transparent}
+.card.air{background:#163D59;border-color:#163D59;color:#FFF}
+.card.gas{background:#C39B35;border-color:#C39B35;color:#312817}
+.card.changed{box-shadow:inset 0 0 0 2px #F47D30,0 0 0 1px #F47D30}
+.card .pill{background:#FFFFFF26;color:inherit;letter-spacing:.06em;font-size:10px;border-radius:4px}
+.card.gas .pill{background:#FFFFFF60}
+.card .headrow{font-size:12px;font-weight:700}
+.card .areaBadge{font-size:12px;opacity:1}
+.card .name{font-size:11px;font-weight:550;padding:5px 0 4px;margin:3px 0 4px;border-bottom:1px solid #FFFFFF55;color:#FFF}
+.card.gas .name{color:#332919;border-color:#48391955}
+.card .dial{width:132px;margin:3px auto 0}
+.card .readout{font-size:20px;margin:0 0 2px}
+.card .state{font-size:10px;letter-spacing:.07em;min-height:12px;margin-bottom:6px}
+.card.air .state.normal,.card.air .state.pending{color:#D2E9F4}
+.card.gas .state.normal,.card.gas .state.pending{color:#40341E}
+.card .state.sat{color:#E43835;background:#FFF8F7;border-radius:3px;padding:3px 0;max-width:108px;margin-left:auto;margin-right:auto}
+.card .previous{min-height:0;background:#FFFFFF20;padding:5px 8px;color:inherit;font-size:11px;margin:4px 0 8px;display:flex;justify-content:space-between;gap:5px;align-items:center}
+.card.gas .previous{background:#FFFFFF45}
+.card .delta.changed{color:#FFDBA3}.card.gas .delta.changed{color:#8D231B}
+.card .quick button{background:#FFFFFF1C;color:inherit;border:1px solid #FFFFFF5A;min-width:42px;padding:5px}
+.card.gas .quick button{border-color:#47371D55;background:#FFFFFF44}
+.card .fields label{font-size:10px;color:inherit}
+.card .fields input,.card .obs{border:1px solid #FFFFFF70;background:#FFFFFF17;color:#FFF;border-radius:5px;font-size:13px;padding:7px}
+.card.gas .fields input,.card.gas .obs{border-color:#47371D6B;background:#FFFFFF5D;color:#312817}
+.card .fields input::placeholder,.card .obs::placeholder{color:#FFFFFFB0}
+.card.gas .fields input::placeholder,.card.gas .obs::placeholder{color:#644D24}
+.card .slider{display:none}
+.card .photoBtn{background:#FFFFFFE8;color:#39434B;border:0;margin:9px 0 3px;padding:8px;font-size:11px}
+.card .photoBtn:hover{background:#FFF}
+.card .photoCount{color:inherit;font-size:10px}
+.card .photoCount:empty{display:none}
+.card .obs{margin-top:6px;font-size:11px}
+.card button.clear{background:transparent;color:inherit;border:none;text-decoration:underline;opacity:.75;font-size:10px;padding:4px}
+.historySection{background:#fff;color:#333;border:1px solid #DCDDDD;margin:14px 24px 24px;border-radius:8px}
+.historyHeading{background:#F4F4F3;color:var(--amt-graphite);padding:11px 14px;border-bottom:1px solid #E2E2E2}
+.historyHeading h2{font-size:16px}
+.historyBody{padding:14px}
+.historyTools label,.historyStats{color:#444}
+.historyTools select{min-width:145px;color:#333;background:#fff;border-color:#ddd}
+.historyTable th{background:#ECEDEE;color:#494B4D}.historyTable td{border-color:#E3E3E3}
+.historyTable tr.modified{background:#FFF0E2}.historyTable tr:hover{background:#F6F6F6}.historyTable tr.modified:hover{background:#FFE6D0}
+.historyTable tr.noComparison{color:#777}
+.historyArchives{border:1px solid #E4E4E4}.historyEntry{color:#555;border-color:#E5E5E5}
+.transferDetails{margin:18px 24px;border:1px solid #DEDFDF;border-radius:8px;background:#fff;color:#424446;overflow:hidden}
+.transferDetails>summary{list-style:none;cursor:pointer;background:#F6F6F6;color:#4B4D4F;font-size:13px;font-weight:700;padding:14px;border-left:4px solid #F47D30}
+.transferDetails>summary:after{content:' ▾';color:#F47D30}
+.transferDetails[open]>summary{border-bottom:1px solid #E5E5E5}
+.folderSync,.androidSync{margin:0;background:#fff;border:0;border-bottom:1px solid #E5E5E5;padding:16px;color:#484A4C}
+.folderSync{display:grid;gap:8px}
+.folderTitle,.androidTitle{color:#555658;font-size:13px;font-weight:700}
+.folderIcon,.androidIcon{display:none}
+.folderTools{gap:7px}
+#folderState,.androidState{color:#666;font-size:12px}
+#folderState.warning,.androidState.warning{color:#986600}
+#folderState.error,.androidState.error{color:#B3261E}
+.androidState.ok{color:#276B42}
+.androidActions{margin:8px 0;gap:8px}
+.androidActions select{background:#fff;color:#444;border:1px solid #ddd;border-radius:6px}
+.androidActions label:not(.filelabel){color:#555}
+.androidActions button,.androidActions .filelabel{min-height:37px}
+.photoOverlay{background:#212326B8}
+.photoPanel{background:#fff;color:#333;border:0;box-shadow:0 20px 70px #0005}
+.photoHeader h2{color:#555658}
+.photoReadout{background:#F6F6F5;color:#484A4C;border:1px solid #E2E2E2}
+.photoCanvas{background:#F1F1F0;border:1px solid #D1D1D1}
+.photoInput input{color:#333;background:#fff;border:1px solid #CCC}
+.photoPanel .filelabel{color:#555}
+@media(max-width:900px){.workspace{grid-template-columns:minmax(160px,1fr) minmax(160px,1fr)}.noteDetails,.workspaceActions{grid-column:auto}.toolbars{position:static}}
+@media(max-width:600px){
+ header.amtHeader{padding:12px 14px}header h1{font-size:19px}
+ .workspace{padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .workspace>.fieldlabel{margin:0}.workspaceActions{grid-column:1/-1;display:flex;margin:0}.workspaceActions button{flex:1}
+ .noteDetails{grid-column:1/-1;margin:0}
+ .toolbars{padding:9px 12px;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+ .toolbars>input[type=search]{min-width:0;grid-column:1/-1;width:100%}
+ .toolbars select{min-width:0;width:100%}.toolbars .spacer{display:none}
+ .toolbars .fileMenu{grid-column:1/-1}.fileMenu summary{width:100%;text-align:center}
+ .fileMenu[open] .fileTools{right:0;left:0;min-width:0}
+ .ribbon{padding:7px 12px}
+ .metrics{gap:7px;padding:9px 12px;overflow-x:auto}.metric{flex:0 0 112px;padding:7px 9px}.metric b{font-size:19px}
+ .furnaceHeader{padding:12px 12px 4px}.zoneTitle{margin:7px 12px 0}
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px 10px;gap:8px}
+ .card{padding:9px 7px}.card .dial{width:104px}.card .name{font-size:10px}.card .areaBadge{font-size:10px}
+ .card .readout{font-size:16px}.card .fields input{font-size:12px;padding:6px 4px}.card .quick button{min-width:30px;padding:5px 4px}
+ .card .previous{font-size:10px;display:block}.card .previous .delta{display:inline;margin-left:4px}
+ .card .obs{font-size:10px}
+ .historySection,.transferDetails{margin:10px 12px}
+ .folderSync,.androidSync{padding:12px}
+ .androidActions{grid-template-columns:1fr 1fr}.androidActions label:not(.filelabel){grid-column:1/-1}
+ .photoPanel{padding:13px}
+}
+@media print{
+ header.amtHeader,.transferDetails,.fileMenu{display:none!important}
+ .card.air{background:#DFEDF7!important;color:#173D59!important;border:1px solid #80A1B9!important}
+ .card.gas{background:#F5E3AF!important;color:#382D13!important;border:1px solid #B99B55!important}
+ .card.air .name{color:#173D59}.card.gas .name{color:#382D13}
+ .zoneTitle{background:#EEE!important;color:#444!important}
+}
+
+
+
+/* REV01 PWA: furnace/corridor-first inspection */
+.operationalFilters{display:flex;gap:10px;align-items:end;flex-wrap:wrap;width:100%}
+.filterUnit{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;color:#555658;min-width:126px}
+.filterUnit select{min-width:160px}
+.filterUnit:first-child select{border:2px solid #F47D30;font-weight:700}
+.sideSelector{display:flex;align-items:center;gap:4px;padding:4px;background:#f0f1f2;border:1px solid #d5d7d9;border-radius:10px;flex-wrap:wrap}
+.sideSelector button{border:0!important;background:transparent!important;color:#555658!important;border-radius:7px!important;padding:9px 13px!important;font-weight:650;font-size:13px;white-space:nowrap}
+.sideSelector button.active{background:#F47D30!important;color:#fff!important;box-shadow:0 1px 4px #0002}
+.sideSelector button:focus-visible{outline:3px solid #123e65!important;outline-offset:2px}
+.searchline{width:100%;display:flex;align-items:center;gap:10px;justify-content:space-between}
+.searchline #search{max-width:440px;flex:1;min-width:170px}
+.searchline .fileMenu{margin-left:auto}
+.toolbars{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important}
+.metrics{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:8px!important}
+.pwaState{margin-left:auto;align-self:center;font-size:11px;font-weight:650;color:#555658;background:#f1f2f3;border:1px solid #dadddf;border-radius:30px;padding:5px 10px}
+@media(max-width:720px){
+ .metrics{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}
+ .metrics .metric{min-width:0!important}
+ .filterUnit{flex:1;min-width:120px}
+ .filterUnit select{min-width:0;width:100%}
+ .sideSelector{flex:1 0 100%;justify-content:stretch}
+ .sideSelector button{flex:1;padding:11px 5px!important;font-size:12px}
+ .searchline #search{width:100%;min-width:100px}
+}
+@media print{.pwaState,.sideSelector,.operationalFilters,.searchline{display:none!important}}
+
+/* Demonstração pública: desabilita menus de transferência corporativa. */
+.transferDetails{display:none!important}
+</style>
+<meta content="#F47D30" name="theme-color"/><link href="./manifest.webmanifest" rel="manifest"/><link href="./icons/icon-192.png" rel="icon" type="image/png"/><link href="./icons/icon-192.png" rel="apple-touch-icon"/></head>
+<body>
+<header class="amtHeader"><div class="brandLine"><span aria-hidden="true" class="brandGlyph"></span><span class="brandName">ValveTrack</span><span class="brandDivider"></span><span class="brandContext">Demonstração PWA</span></div><h1>ValveTrack</h1><span class="pwaState" id="pwaState">ValveTrack</span></header>
+<div id="publicDemoNotice" role="note" style="position:relative;padding:12px 20px;background:#fff4df;border-bottom:2px solid #e5a435;color:#714608;font:600 13px/1.5 Segoe UI,Arial,sans-serif">DEMONSTRAÇÃO PÚBLICA — Dados e estações fictícios. Não registre informações ou fotografias reais. Os testes são armazenados somente neste navegador. Sem conexão com servidores de inspeção.</div>
+<section class="workspace">
+<label class="fieldlabel">Data da inspeção<input id="inspectionDate" type="date"/></label>
+<label class="fieldlabel">Inspetor<input id="inspector" placeholder="Nome" type="text"/></label>
+<details class="noteDetails"><summary>Observação</summary><label class="fieldlabel"><textarea id="generalNote" placeholder="Observações da inspeção" rows="1"></textarea></label></details>
+<div class="workspaceActions"><button id="newInspection">Nova inspeção</button><button class="primary" id="saveInspection">Salvar inspeção</button></div>
+</section>
+<div aria-live="polite" class="ribbon" id="ribbon"></div>
+<section class="toolbars"><div class="operationalFilters"><label class="filterUnit"><span>Forno</span><select aria-label="Selecionar forno" id="filterForno"><option value="Forno 1">Forno 1</option><option value="Forno 2">Forno 2</option></select></label><label class="filterUnit"><span>Área</span><select id="filterArea"><option value="Todas">Todas as áreas</option><option>Pré-aquecimento</option><option>Aquecimento 1</option><option>Aquecimento 2</option><option>Encharque</option></select></label><div aria-label="Lado do forno" class="sideSelector" role="group"><button aria-pressed="true" class="sideOption active" data-side="Todos" type="button">Ambos os lados</button><button aria-pressed="false" class="sideOption" data-side="Pátio" type="button">Lado Pátio</button><button aria-pressed="false" class="sideOption" data-side="Linha" type="button">Lado Linha</button></div></div>
+
+
+
+<div class="searchline"><input id="search" placeholder="Buscar queimador / válvula..." type="search"/><details class="fileMenu"><summary>Arquivos</summary><div class="fileTools"><button id="historyCSV">Histórico CSV</button><button class="accent" id="backup">Backup + fotos</button>
+<label class="filelabel">Restaurar JSON<input accept=".json,application/json" hidden="" id="restore" type="file"/></label>
+<label class="filelabel">Importar CSV<input accept=".csv,text/csv" hidden="" id="importPositions" type="file"/></label>
+<button id="print">Imprimir / PDF</button></div></details></div></section>
+<section class="metrics"><div class="metric">Válvulas<b id="sumTotal">80</b></div><div class="metric">Exibidas<b id="sumVisible">80</b></div><div class="metric">Medidas<b id="sumInspected">0</b></div><div class="metric">Alteradas<b id="sumChanged">0</b></div><div class="metric">Saturadas<b id="sumSaturated">0</b></div><div class="metric">Inspeções<b id="sumHistory">0</b></div></section>
+<p id="flash" role="status" style="padding:0 25px"></p>
+<main id="app"></main>
+<details class="transferDetails" id="transferDetails"><summary>Transferência e histórico externo</summary>
+<section aria-label="Armazenamento em pasta sincronizada" class="folderSync">
+<div class="folderTitle"><span class="folderIcon"></span><div><b>pasta externa · Histórico</b></div></div>
+<div class="folderTools"><button class="primary" id="chooseFolder">Selecionar pasta</button><button disabled="" id="syncFolder">Gravar pendentes</button><button disabled="" id="disconnectFolder">Desvincular</button><span id="folderState" role="status">Nenhuma pasta</span></div>
+</section>
+<section aria-label="Transferir inspeção pelo Android" class="androidSync">
+<div class="androidTitle"><span class="androidIcon"></span><div><b>serviço de arquivos · Transferência</b></div></div>
+<div class="androidActions">
+<label>Inspeção<select aria-label="Escolha uma inspeção salva" id="portableSelect"></select></label>
+<button class="primary" id="preparePortable">Preparar JSON + fotos</button>
+<button disabled="" id="sharePortable">Compartilhar</button>
+<button disabled="" id="downloadPortable">Baixar JSON</button>
+<label class="filelabel">Importar JSON<input accept=".json,application/json" hidden="" id="importPortable" type="file"/></label>
+</div>
+<div class="androidState" id="portableState" role="status"></div>
+</section>
+</details>
+<section class="historySection" id="historySection">
+<div class="historyHeading"><h2>Histórico e comparação</h2><button id="toggleHistory">Ocultar histórico</button></div>
+<div class="historyBody" id="historyBody">
+<div class="historyArchives" id="historyArchives"></div>
+<div class="historyTools">
+<label>Inspeção anterior<select id="beforeSelect"></select></label><label>Inspeção posterior<select id="afterSelect"></select></label>
+<label>Forno<select id="compareForno"><option value="Todos">Todos</option><option>Forno 1</option><option>Forno 2</option></select></label>
+<label class="checkbox"><input id="onlyChanged" type="checkbox"/>Mostrar apenas mudanças</label>
+</div>
+<div class="historyStats" id="compareStats"></div>
+<div class="historyList"><table class="historyTable"><thead><tr><th>Forno</th><th>Zona / Área</th><th>Queimador</th><th>Tipo</th><th>Anterior</th><th>Posterior</th><th>Δ</th><th>Resultado</th></tr></thead><tbody id="compareRows"></tbody></table></div>
+</div>
+</section>
+<div aria-labelledby="photoTitle" aria-modal="true" class="photoOverlay hidden" id="photoOverlay" role="dialog">
+<div class="photoPanel">
+<div class="photoHeader"><h2 id="photoTitle">Fotografia da válvula</h2><button id="closePhoto">Fechar</button></div>
+<div class="photoActions">
+<label class="filelabel">Fotografar / anexar<input accept="image/*" capture="environment" hidden="" id="photoFile" type="file"/></label>
+<button id="removePhoto" type="button">Remover foto</button>
+</div>
+<canvas aria-label="Foto da válvula para inspeção" class="photoCanvas" height="380" id="photoCanvas" width="600"></canvas>
+<div class="photoReadout" id="photoReadout"></div>
+<div class="photoInput"><label>Graus: <input id="photoAngle" max="90" min="0" placeholder="—" step="0.1" type="number"/></label>
+<button class="photoPrimary" id="confirmPhoto">Salvar foto e posição</button>
+</div>
+</div>
+</div>
+<script>
+const BASE=[{"seq":1,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1A","tipo":"Ar","name":"Forno 1 - Estação 1A - Ar (DEMO)","deg":0},{"seq":2,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1A","tipo":"Gás","name":"Forno 1 - Estação 1A - Gás (DEMO)","deg":0},{"seq":3,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1B","tipo":"Ar","name":"Forno 1 - Estação 1B - Ar (DEMO)","deg":0},{"seq":4,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1B","tipo":"Gás","name":"Forno 1 - Estação 1B - Gás (DEMO)","deg":0},{"seq":5,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1C","tipo":"Ar","name":"Forno 1 - Estação 1C - Ar (DEMO)","deg":0},{"seq":6,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1C","tipo":"Gás","name":"Forno 1 - Estação 1C - Gás (DEMO)","deg":0},{"seq":7,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1D","tipo":"Ar","name":"Forno 1 - Estação 1D - Ar (DEMO)","deg":0},{"seq":8,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1D","tipo":"Gás","name":"Forno 1 - Estação 1D - Gás (DEMO)","deg":0},{"seq":9,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1E","tipo":"Ar","name":"Forno 1 - Estação 1E - Ar (DEMO)","deg":0},{"seq":10,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1E","tipo":"Gás","name":"Forno 1 - Estação 1E - Gás (DEMO)","deg":0},{"seq":11,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1F","tipo":"Ar","name":"Forno 1 - Estação 1F - Ar (DEMO)","deg":0},{"seq":12,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1F","tipo":"Gás","name":"Forno 1 - Estação 1F - Gás (DEMO)","deg":0},{"seq":13,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1G","tipo":"Ar","name":"Forno 1 - Estação 1G - Ar (DEMO)","deg":0},{"seq":14,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1G","tipo":"Gás","name":"Forno 1 - Estação 1G - Gás (DEMO)","deg":0},{"seq":15,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1H","tipo":"Ar","name":"Forno 1 - Estação 1H - Ar (DEMO)","deg":0},{"seq":16,"forno":"Forno 1","zona":"1","area":"Pré-aquecimento","burner":"1H","tipo":"Gás","name":"Forno 1 - Estação 1H - Gás (DEMO)","deg":0},{"seq":17,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2A","tipo":"Ar","name":"Forno 1 - Estação 2A - Ar (DEMO)","deg":0},{"seq":18,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2A","tipo":"Gás","name":"Forno 1 - Estação 2A - Gás (DEMO)","deg":0},{"seq":19,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2B","tipo":"Ar","name":"Forno 1 - Estação 2B - Ar (DEMO)","deg":0},{"seq":20,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2B","tipo":"Gás","name":"Forno 1 - Estação 2B - Gás (DEMO)","deg":0},{"seq":21,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2C","tipo":"Ar","name":"Forno 1 - Estação 2C - Ar (DEMO)","deg":0},{"seq":22,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2C","tipo":"Gás","name":"Forno 1 - Estação 2C - Gás (DEMO)","deg":0},{"seq":23,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2D","tipo":"Ar","name":"Forno 1 - Estação 2D - Ar (DEMO)","deg":0},{"seq":24,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2D","tipo":"Gás","name":"Forno 1 - Estação 2D - Gás (DEMO)","deg":0},{"seq":25,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2E","tipo":"Ar","name":"Forno 1 - Estação 2E - Ar (DEMO)","deg":0},{"seq":26,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2E","tipo":"Gás","name":"Forno 1 - Estação 2E - Gás (DEMO)","deg":0},{"seq":27,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2F","tipo":"Ar","name":"Forno 1 - Estação 2F - Ar (DEMO)","deg":0},{"seq":28,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2F","tipo":"Gás","name":"Forno 1 - Estação 2F - Gás (DEMO)","deg":0},{"seq":29,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2G","tipo":"Ar","name":"Forno 1 - Estação 2G - Ar (DEMO)","deg":0},{"seq":30,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2G","tipo":"Gás","name":"Forno 1 - Estação 2G - Gás (DEMO)","deg":0},{"seq":31,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2H","tipo":"Ar","name":"Forno 1 - Estação 2H - Ar (DEMO)","deg":0},{"seq":32,"forno":"Forno 1","zona":"2","area":"Pré-aquecimento","burner":"2H","tipo":"Gás","name":"Forno 1 - Estação 2H - Gás (DEMO)","deg":0},{"seq":33,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3A","tipo":"Ar","name":"Forno 1 - Estação 3A - Ar (DEMO)","deg":0},{"seq":34,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3A","tipo":"Gás","name":"Forno 1 - Estação 3A - Gás (DEMO)","deg":0},{"seq":35,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3B","tipo":"Ar","name":"Forno 1 - Estação 3B - Ar (DEMO)","deg":0},{"seq":36,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3B","tipo":"Gás","name":"Forno 1 - Estação 3B - Gás (DEMO)","deg":0},{"seq":37,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3C","tipo":"Ar","name":"Forno 1 - Estação 3C - Ar (DEMO)","deg":0},{"seq":38,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3C","tipo":"Gás","name":"Forno 1 - Estação 3C - Gás (DEMO)","deg":0},{"seq":39,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3D","tipo":"Ar","name":"Forno 1 - Estação 3D - Ar (DEMO)","deg":0},{"seq":40,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3D","tipo":"Gás","name":"Forno 1 - Estação 3D - Gás (DEMO)","deg":0},{"seq":41,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3E","tipo":"Ar","name":"Forno 1 - Estação 3E - Ar (DEMO)","deg":0},{"seq":42,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3E","tipo":"Gás","name":"Forno 1 - Estação 3E - Gás (DEMO)","deg":0},{"seq":43,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3F","tipo":"Ar","name":"Forno 1 - Estação 3F - Ar (DEMO)","deg":0},{"seq":44,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3F","tipo":"Gás","name":"Forno 1 - Estação 3F - Gás (DEMO)","deg":0},{"seq":45,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3G","tipo":"Ar","name":"Forno 1 - Estação 3G - Ar (DEMO)","deg":0},{"seq":46,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3G","tipo":"Gás","name":"Forno 1 - Estação 3G - Gás (DEMO)","deg":0},{"seq":47,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3H","tipo":"Ar","name":"Forno 1 - Estação 3H - Ar (DEMO)","deg":0},{"seq":48,"forno":"Forno 1","zona":"3","area":"Aquecimento 1","burner":"3H","tipo":"Gás","name":"Forno 1 - Estação 3H - Gás (DEMO)","deg":0},{"seq":49,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4A","tipo":"Ar","name":"Forno 1 - Estação 4A - Ar (DEMO)","deg":0},{"seq":50,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4A","tipo":"Gás","name":"Forno 1 - Estação 4A - Gás (DEMO)","deg":0},{"seq":51,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4B","tipo":"Ar","name":"Forno 1 - Estação 4B - Ar (DEMO)","deg":0},{"seq":52,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4B","tipo":"Gás","name":"Forno 1 - Estação 4B - Gás (DEMO)","deg":0},{"seq":53,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4C","tipo":"Ar","name":"Forno 1 - Estação 4C - Ar (DEMO)","deg":0},{"seq":54,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4C","tipo":"Gás","name":"Forno 1 - Estação 4C - Gás (DEMO)","deg":0},{"seq":55,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4D","tipo":"Ar","name":"Forno 1 - Estação 4D - Ar (DEMO)","deg":0},{"seq":56,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4D","tipo":"Gás","name":"Forno 1 - Estação 4D - Gás (DEMO)","deg":0},{"seq":57,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4E","tipo":"Ar","name":"Forno 1 - Estação 4E - Ar (DEMO)","deg":0},{"seq":58,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4E","tipo":"Gás","name":"Forno 1 - Estação 4E - Gás (DEMO)","deg":0},{"seq":59,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4F","tipo":"Ar","name":"Forno 1 - Estação 4F - Ar (DEMO)","deg":0},{"seq":60,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4F","tipo":"Gás","name":"Forno 1 - Estação 4F - Gás (DEMO)","deg":0},{"seq":61,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4G","tipo":"Ar","name":"Forno 1 - Estação 4G - Ar (DEMO)","deg":0},{"seq":62,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4G","tipo":"Gás","name":"Forno 1 - Estação 4G - Gás (DEMO)","deg":0},{"seq":63,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4H","tipo":"Ar","name":"Forno 1 - Estação 4H - Ar (DEMO)","deg":0},{"seq":64,"forno":"Forno 1","zona":"4","area":"Aquecimento 2","burner":"4H","tipo":"Gás","name":"Forno 1 - Estação 4H - Gás (DEMO)","deg":0},{"seq":65,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8A","tipo":"Ar","name":"Forno 1 - Estação 8A - Ar (DEMO)","deg":0},{"seq":66,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8A","tipo":"Gás","name":"Forno 1 - Estação 8A - Gás (DEMO)","deg":0},{"seq":67,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8B","tipo":"Ar","name":"Forno 1 - Estação 8B - Ar (DEMO)","deg":0},{"seq":68,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8B","tipo":"Gás","name":"Forno 1 - Estação 8B - Gás (DEMO)","deg":0},{"seq":69,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8C","tipo":"Ar","name":"Forno 1 - Estação 8C - Ar (DEMO)","deg":0},{"seq":70,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8C","tipo":"Gás","name":"Forno 1 - Estação 8C - Gás (DEMO)","deg":0},{"seq":71,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8D","tipo":"Ar","name":"Forno 1 - Estação 8D - Ar (DEMO)","deg":0},{"seq":72,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8D","tipo":"Gás","name":"Forno 1 - Estação 8D - Gás (DEMO)","deg":0},{"seq":73,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8E","tipo":"Ar","name":"Forno 1 - Estação 8E - Ar (DEMO)","deg":0},{"seq":74,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8E","tipo":"Gás","name":"Forno 1 - Estação 8E - Gás (DEMO)","deg":0},{"seq":75,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8F","tipo":"Ar","name":"Forno 1 - Estação 8F - Ar (DEMO)","deg":0},{"seq":76,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8F","tipo":"Gás","name":"Forno 1 - Estação 8F - Gás (DEMO)","deg":0},{"seq":77,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8G","tipo":"Ar","name":"Forno 1 - Estação 8G - Ar (DEMO)","deg":0},{"seq":78,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8G","tipo":"Gás","name":"Forno 1 - Estação 8G - Gás (DEMO)","deg":0},{"seq":79,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8H","tipo":"Ar","name":"Forno 1 - Estação 8H - Ar (DEMO)","deg":0},{"seq":80,"forno":"Forno 1","zona":"8","area":"Encharque","burner":"8H","tipo":"Gás","name":"Forno 1 - Estação 8H - Gás (DEMO)","deg":0},{"seq":81,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1A","tipo":"Ar","name":"Forno 2 - Estação 1A - Ar (DEMO)","deg":0},{"seq":82,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1A","tipo":"Gás","name":"Forno 2 - Estação 1A - Gás (DEMO)","deg":0},{"seq":83,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1B","tipo":"Ar","name":"Forno 2 - Estação 1B - Ar (DEMO)","deg":0},{"seq":84,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1B","tipo":"Gás","name":"Forno 2 - Estação 1B - Gás (DEMO)","deg":0},{"seq":85,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1C","tipo":"Ar","name":"Forno 2 - Estação 1C - Ar (DEMO)","deg":0},{"seq":86,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1C","tipo":"Gás","name":"Forno 2 - Estação 1C - Gás (DEMO)","deg":0},{"seq":87,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1D","tipo":"Ar","name":"Forno 2 - Estação 1D - Ar (DEMO)","deg":0},{"seq":88,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1D","tipo":"Gás","name":"Forno 2 - Estação 1D - Gás (DEMO)","deg":0},{"seq":89,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1E","tipo":"Ar","name":"Forno 2 - Estação 1E - Ar (DEMO)","deg":0},{"seq":90,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1E","tipo":"Gás","name":"Forno 2 - Estação 1E - Gás (DEMO)","deg":0},{"seq":91,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1F","tipo":"Ar","name":"Forno 2 - Estação 1F - Ar (DEMO)","deg":0},{"seq":92,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1F","tipo":"Gás","name":"Forno 2 - Estação 1F - Gás (DEMO)","deg":0},{"seq":93,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1G","tipo":"Ar","name":"Forno 2 - Estação 1G - Ar (DEMO)","deg":0},{"seq":94,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1G","tipo":"Gás","name":"Forno 2 - Estação 1G - Gás (DEMO)","deg":0},{"seq":95,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1H","tipo":"Ar","name":"Forno 2 - Estação 1H - Ar (DEMO)","deg":0},{"seq":96,"forno":"Forno 2","zona":"1","area":"Pré-aquecimento","burner":"1H","tipo":"Gás","name":"Forno 2 - Estação 1H - Gás (DEMO)","deg":0},{"seq":97,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2A","tipo":"Ar","name":"Forno 2 - Estação 2A - Ar (DEMO)","deg":0},{"seq":98,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2A","tipo":"Gás","name":"Forno 2 - Estação 2A - Gás (DEMO)","deg":0},{"seq":99,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2B","tipo":"Ar","name":"Forno 2 - Estação 2B - Ar (DEMO)","deg":0},{"seq":100,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2B","tipo":"Gás","name":"Forno 2 - Estação 2B - Gás (DEMO)","deg":0},{"seq":101,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2C","tipo":"Ar","name":"Forno 2 - Estação 2C - Ar (DEMO)","deg":0},{"seq":102,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2C","tipo":"Gás","name":"Forno 2 - Estação 2C - Gás (DEMO)","deg":0},{"seq":103,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2D","tipo":"Ar","name":"Forno 2 - Estação 2D - Ar (DEMO)","deg":0},{"seq":104,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2D","tipo":"Gás","name":"Forno 2 - Estação 2D - Gás (DEMO)","deg":0},{"seq":105,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2E","tipo":"Ar","name":"Forno 2 - Estação 2E - Ar (DEMO)","deg":0},{"seq":106,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2E","tipo":"Gás","name":"Forno 2 - Estação 2E - Gás (DEMO)","deg":0},{"seq":107,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2F","tipo":"Ar","name":"Forno 2 - Estação 2F - Ar (DEMO)","deg":0},{"seq":108,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2F","tipo":"Gás","name":"Forno 2 - Estação 2F - Gás (DEMO)","deg":0},{"seq":109,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2G","tipo":"Ar","name":"Forno 2 - Estação 2G - Ar (DEMO)","deg":0},{"seq":110,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2G","tipo":"Gás","name":"Forno 2 - Estação 2G - Gás (DEMO)","deg":0},{"seq":111,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2H","tipo":"Ar","name":"Forno 2 - Estação 2H - Ar (DEMO)","deg":0},{"seq":112,"forno":"Forno 2","zona":"2","area":"Pré-aquecimento","burner":"2H","tipo":"Gás","name":"Forno 2 - Estação 2H - Gás (DEMO)","deg":0},{"seq":113,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3A","tipo":"Ar","name":"Forno 2 - Estação 3A - Ar (DEMO)","deg":0},{"seq":114,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3A","tipo":"Gás","name":"Forno 2 - Estação 3A - Gás (DEMO)","deg":0},{"seq":115,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3B","tipo":"Ar","name":"Forno 2 - Estação 3B - Ar (DEMO)","deg":0},{"seq":116,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3B","tipo":"Gás","name":"Forno 2 - Estação 3B - Gás (DEMO)","deg":0},{"seq":117,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3C","tipo":"Ar","name":"Forno 2 - Estação 3C - Ar (DEMO)","deg":0},{"seq":118,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3C","tipo":"Gás","name":"Forno 2 - Estação 3C - Gás (DEMO)","deg":0},{"seq":119,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3D","tipo":"Ar","name":"Forno 2 - Estação 3D - Ar (DEMO)","deg":0},{"seq":120,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3D","tipo":"Gás","name":"Forno 2 - Estação 3D - Gás (DEMO)","deg":0},{"seq":121,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3E","tipo":"Ar","name":"Forno 2 - Estação 3E - Ar (DEMO)","deg":0},{"seq":122,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3E","tipo":"Gás","name":"Forno 2 - Estação 3E - Gás (DEMO)","deg":0},{"seq":123,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3F","tipo":"Ar","name":"Forno 2 - Estação 3F - Ar (DEMO)","deg":0},{"seq":124,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3F","tipo":"Gás","name":"Forno 2 - Estação 3F - Gás (DEMO)","deg":0},{"seq":125,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3G","tipo":"Ar","name":"Forno 2 - Estação 3G - Ar (DEMO)","deg":0},{"seq":126,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3G","tipo":"Gás","name":"Forno 2 - Estação 3G - Gás (DEMO)","deg":0},{"seq":127,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3H","tipo":"Ar","name":"Forno 2 - Estação 3H - Ar (DEMO)","deg":0},{"seq":128,"forno":"Forno 2","zona":"3","area":"Aquecimento 1","burner":"3H","tipo":"Gás","name":"Forno 2 - Estação 3H - Gás (DEMO)","deg":0},{"seq":129,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4A","tipo":"Ar","name":"Forno 2 - Estação 4A - Ar (DEMO)","deg":0},{"seq":130,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4A","tipo":"Gás","name":"Forno 2 - Estação 4A - Gás (DEMO)","deg":0},{"seq":131,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4B","tipo":"Ar","name":"Forno 2 - Estação 4B - Ar (DEMO)","deg":0},{"seq":132,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4B","tipo":"Gás","name":"Forno 2 - Estação 4B - Gás (DEMO)","deg":0},{"seq":133,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4C","tipo":"Ar","name":"Forno 2 - Estação 4C - Ar (DEMO)","deg":0},{"seq":134,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4C","tipo":"Gás","name":"Forno 2 - Estação 4C - Gás (DEMO)","deg":0},{"seq":135,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4D","tipo":"Ar","name":"Forno 2 - Estação 4D - Ar (DEMO)","deg":0},{"seq":136,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4D","tipo":"Gás","name":"Forno 2 - Estação 4D - Gás (DEMO)","deg":0},{"seq":137,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4E","tipo":"Ar","name":"Forno 2 - Estação 4E - Ar (DEMO)","deg":0},{"seq":138,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4E","tipo":"Gás","name":"Forno 2 - Estação 4E - Gás (DEMO)","deg":0},{"seq":139,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4F","tipo":"Ar","name":"Forno 2 - Estação 4F - Ar (DEMO)","deg":0},{"seq":140,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4F","tipo":"Gás","name":"Forno 2 - Estação 4F - Gás (DEMO)","deg":0},{"seq":141,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4G","tipo":"Ar","name":"Forno 2 - Estação 4G - Ar (DEMO)","deg":0},{"seq":142,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4G","tipo":"Gás","name":"Forno 2 - Estação 4G - Gás (DEMO)","deg":0},{"seq":143,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4H","tipo":"Ar","name":"Forno 2 - Estação 4H - Ar (DEMO)","deg":0},{"seq":144,"forno":"Forno 2","zona":"4","area":"Aquecimento 2","burner":"4H","tipo":"Gás","name":"Forno 2 - Estação 4H - Gás (DEMO)","deg":0},{"seq":145,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8A","tipo":"Ar","name":"Forno 2 - Estação 8A - Ar (DEMO)","deg":0},{"seq":146,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8A","tipo":"Gás","name":"Forno 2 - Estação 8A - Gás (DEMO)","deg":0},{"seq":147,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8B","tipo":"Ar","name":"Forno 2 - Estação 8B - Ar (DEMO)","deg":0},{"seq":148,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8B","tipo":"Gás","name":"Forno 2 - Estação 8B - Gás (DEMO)","deg":0},{"seq":149,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8C","tipo":"Ar","name":"Forno 2 - Estação 8C - Ar (DEMO)","deg":0},{"seq":150,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8C","tipo":"Gás","name":"Forno 2 - Estação 8C - Gás (DEMO)","deg":0},{"seq":151,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8D","tipo":"Ar","name":"Forno 2 - Estação 8D - Ar (DEMO)","deg":0},{"seq":152,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8D","tipo":"Gás","name":"Forno 2 - Estação 8D - Gás (DEMO)","deg":0},{"seq":153,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8E","tipo":"Ar","name":"Forno 2 - Estação 8E - Ar (DEMO)","deg":0},{"seq":154,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8E","tipo":"Gás","name":"Forno 2 - Estação 8E - Gás (DEMO)","deg":0},{"seq":155,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8F","tipo":"Ar","name":"Forno 2 - Estação 8F - Ar (DEMO)","deg":0},{"seq":156,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8F","tipo":"Gás","name":"Forno 2 - Estação 8F - Gás (DEMO)","deg":0},{"seq":157,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8G","tipo":"Ar","name":"Forno 2 - Estação 8G - Ar (DEMO)","deg":0},{"seq":158,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8G","tipo":"Gás","name":"Forno 2 - Estação 8G - Gás (DEMO)","deg":0},{"seq":159,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8H","tipo":"Ar","name":"Forno 2 - Estação 8H - Ar (DEMO)","deg":0},{"seq":160,"forno":"Forno 2","zona":"8","area":"Encharque","burner":"8H","tipo":"Gás","name":"Forno 2 - Estação 8H - Gás (DEMO)","deg":0}];
+const N=BASE.length, KEY='valvetrack_demo_publica_v1', LEGACY_KEY='valvetrack_demo_legado_inexistente';
+const byId = (id)=>document.getElementById(id);
+function nowDate(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function isoValid(s){return typeof s==='string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s+'T12:00:00'))}
+function normDeg(raw){if(raw===null || raw===undefined || raw==='')return null;const n=Number(raw);return Number.isFinite(n)&&n>=0&&n<=90?Math.round(n*10)/10:null}
+function freshDraft(){return BASE.map(v=>({name:v.name,deg:null,obs:'',photoId:null}))}
+function freshState(){return {format:'inspecao-valvulas-160-v1',draft:freshDraft(),meta:{date:nowDate(),inspector:'',notes:''},history:[],savedMode:false,savedId:null}}
+function cleanValue(v){if(v===null||v===undefined)return null;const d=normDeg(typeof v==='object'?v.deg:v);return d===null?null:{deg:d,obs:typeof v?.obs==='string'?v.obs.slice(0,1000):'',photoId:typeof v?.photoId==='string'?v.photoId:null}}
+function normalize(input){if(!input||!Array.isArray(input.history)||input.history.length>10000)throw Error('Arquivo sem lista de histórico válida');
+  let output=freshState(); output.history=input.history.map((snap,i)=>{
+    if(!isoValid(snap.date)||!Array.isArray(snap.values)||snap.values.length!==N)throw Error('Registro histórico incompatível (posição '+(i+1)+')');
+    return {id:String(snap.id||'restaurado-'+i),forno:['Forno 1','Forno 2'].includes(snap.forno)?snap.forno:null,date:snap.date,savedAt:String(snap.savedAt||snap.date+'T00:00:00'),inspector:String(snap.inspector||'').slice(0,150),notes:String(snap.notes||'').slice(0,1000),values:snap.values.map(cleanValue),names:Array.isArray(snap.names)&&snap.names.length===N?snap.names.map((name,i)=>String(name||BASE[i].name).slice(0,200)):null};
+  });
+  if(Array.isArray(input.draft)&&input.draft.length===N){output.draft=input.draft.map((v,i)=>({name:String(v.name||BASE[i].name).slice(0,200),deg:normDeg(v.deg),obs:typeof v.obs==='string'?v.obs.slice(0,1000):'',photoId:typeof v.photoId==='string'?v.photoId:null}));}
+  if(input.meta){output.meta={date:isoValid(input.meta.date)?input.meta.date:nowDate(),inspector:String(input.meta.inspector||'').slice(0,150),notes:String(input.meta.notes||'').slice(0,1000)}}
+  output.savedMode=!!input.savedMode; output.savedId=input.savedId?String(input.savedId):null;
+  return output;
+}
+let storageWorks=true, migrated=false;
+function localRead(key){try{return localStorage.getItem(key)}catch(e){storageWorks=false;return null}}
+function localWrite(key,value){try{localStorage.setItem(key,value);return true}catch(e){storageWorks=false;return false}}
+let state;
+try{const raw=localRead(KEY);state=raw?normalize(JSON.parse(raw)):freshState();}catch(e){state=freshState();}
+if(state.history.length===0 && state.draft.every(v=>v.deg===null)){
+  try{const legacy=JSON.parse(localRead(LEGACY_KEY)||'null');if(Array.isArray(legacy)&&legacy.length===N){
+    legacy.forEach((v,i)=>{if(typeof v.name==='string')state.draft[i].name=v.name;const n=normDeg(v.deg);if(n!==null && n!==0)state.draft[i].deg=n;});
+    migrated=true;
+  }}catch(e){}
+}
+function persist(){localWrite(KEY,JSON.stringify(state))}
+function updateFlash(message){byId('flash').textContent=message}
+function sortedHistory(){return [...state.history].sort((a,b)=>a.date.localeCompare(b.date)||a.savedAt.localeCompare(b.savedAt)||a.id.localeCompare(b.id))}
+function prevReading(i){const all=sortedHistory();for(let k=all.length-1;k>=0;k--){let s=all[k];if(state.savedMode && s.id===state.savedId)continue;
+    if(s.date>state.meta.date)continue;const val=s.values[i];if(val!==null)return {deg:val.deg,obs:val.obs,date:s.date,inspector:s.inspector,id:s.id}}
+  return null;
+}
+function clock(d){let m=Math.round(180+d*2);return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`}
+function parseClock(s){let m=/^([3-6])\s*:\s*([0-5]\d)$/.exec(String(s).trim());if(!m)return null;let d=(+m[1]*60 + +m[2]-180)/2;return d>=0&&d<=90?d:null}
+function isSat(d){return d!==null&&(d<=0||d>=90)}
+function formatDate(date){if(!date)return '—';const [y,m,d]=date.split('-');return `${d}/${m}/${y}`}
+function dial(deg,tipo){
+ const sat=isSat(deg),active=deg!==null,rad=(deg??0)*Math.PI/180,x=100+70*Math.cos(rad),y=100+70*Math.sin(rad);
+ const color=sat?'#E43835':tipo==='Ar'?'#E9F7FF':'#3C3119',arc=tipo==='Ar'?'#76CBFC':'#FFF0B4',ink=tipo==='Ar'?'#E9F7FF':'#40351F';
+ const arrow=active?`<line x1="100" y1="100" x2="${x.toFixed(2)}" y2="${y.toFixed(2)}" stroke="${color}" stroke-width="4" stroke-linecap="round"/><path d="M${x.toFixed(2)} ${y.toFixed(2)} l${(-12*Math.cos(rad-.39)).toFixed(2)} ${(-12*Math.sin(rad-.39)).toFixed(2)} l${(-12*Math.cos(rad+.39)+12*Math.cos(rad-.39)).toFixed(2)} ${(-12*Math.sin(rad+.39)+12*Math.sin(rad-.39)).toFixed(2)} Z" fill="${color}"/>`:'<text x="100" y="131" fill="#eee" font-size="30" text-anchor="middle">—</text>';
+ return `<svg class="dial" role="img" aria-label="${active?'posição '+deg+' graus':'sem leitura'}" viewBox="0 0 200 200"><circle cx="100" cy="100" r="83" fill="none" stroke="${ink}" stroke-width="2.2"/><path d="M183 100 A83 83 0 0 1 100 183" fill="none" stroke="${arc}" stroke-width="4.7"/><path d="M100 100 H183 M100 100 V183" stroke="${ink}" stroke-width="2"/><circle cx="100" cy="100" r="3" fill="${ink}"/>${arrow}<text x="183" y="94" fill="${ink}" font-size="12" text-anchor="middle">0°</text><text x="95" y="196" fill="white" font-size="12" text-anchor="end">90°</text></svg>`
+}
+const app=byId('app'), cards=[];
+let currentSide='Todos';
+let lastFurnace='Forno 1';
+const valveSide = v => 'ACEG'.includes(v.burner.slice(-1)) ? 'Pátio' : 'Linha';
+const currentFurnace = () => byId('filterForno').value;
+
+function buildPanel(){app.innerHTML=''; cards.length=0;
+ [currentFurnace()].forEach(forno=>{
+   const sect=document.createElement('section');sect.className='furnaceSection';sect.dataset.forno=forno;
+   sect.innerHTML=`<div class="furnaceHeader"><h2 class="furnaceTitle">${forno}</h2></div>`;
+   const zones=[...new Set(BASE.filter(v=>v.forno===forno).map(v=>v.zona))];
+   zones.forEach(z=>{
+     const zone=BASE.find(v=>v.forno===forno&&v.zona===z);
+     const group=document.createElement('div');group.className='zoneGroup';group.dataset.area=zone.area;
+     group.innerHTML=`<div class="zoneTitle">Zona ${z} — ${zone.area}</div><div class="grid"></div>`;
+     const grid=group.querySelector('.grid');
+     BASE.forEach((v,i)=>{if(v.forno!==forno||v.zona!==z)return;
+       const card=document.createElement('article');card.className='card '+(v.tipo==='Ar'?'air':'gas');card.dataset.index=i;
+       card.innerHTML=`<div class="headrow"><span class="pill">${v.tipo.toUpperCase()}</span><span class="areaBadge">Queimador ${v.burner}</span></div>
+       <input class="name" aria-label="TAG ${v.forno} ${v.burner} ${v.tipo}" maxlength="200">
+       <div class="graphic"></div><div class="readout"></div><div class="state"></div><div class="previous"></div>
+       <div class="quick"><button class="q0" title="Registrar posição 0 grau">0°</button><button class="q45" title="Registrar posição 45 graus">45°</button><button class="q90" title="Registrar posição 90 graus">90°</button></div>
+       <div class="fields"><label>Graus<input class="deg" type="number" min="0" max="90" step="0.5" placeholder="—"></label><label>Relógio<input class="hour" type="text" placeholder="—"></label></div>
+       <input class="slider" type="range" min="0" max="90" step="0.5"><button class="photoBtn">Foto</button><div class="photoCount"></div><input class="obs" placeholder="Observação" maxlength="1000" aria-label="Observação da válvula"><button class="clear" title="Não registrar esta válvula na inspeção">Limpar leitura</button>`;
+       grid.appendChild(card);cards[i]=card;
+       card.querySelector('.name').addEventListener('input',e=>{if(state.savedMode)return;state.draft[i].name=e.target.value;persist();});
+       card.querySelector('.deg').addEventListener('change',e=>{const txt=e.target.value.trim();if(txt===''){setReading(i,null);return;}const n=normDeg(txt);if(n===null){alert('Digite um ângulo entre 0 e 90 graus.');updateCard(i);}else setReading(i,n)});
+       card.querySelector('.hour').addEventListener('change',e=>{const txt=e.target.value.trim();if(txt===''){setReading(i,null);return;}const d=parseClock(txt);if(d===null){alert('Use um horário entre 3:00 e 6:00, por exemplo 4:30.');updateCard(i);}else setReading(i,d)});
+       card.querySelector('.slider').addEventListener('input',e=>setReading(i,+e.target.value));
+       for(const [cls,d] of [['.q0',0],['.q45',45],['.q90',90]])card.querySelector(cls).addEventListener('click',()=>setReading(i,d));
+       card.querySelector('.obs').addEventListener('input',e=>{if(state.savedMode)return;state.draft[i].obs=e.target.value;persist();});
+       card.querySelector('.photoBtn').addEventListener('click',()=>openPhoto(i));
+       card.querySelector('.clear').addEventListener('click',()=>{if(!state.savedMode){state.draft[i].deg=null;state.draft[i].obs='';state.draft[i].photoId=null;updateCard(i);persist();updateStats();}});
+     });sect.appendChild(group);
+   });app.appendChild(sect);
+ });updateAll();}
+function updateCard(i){const card=cards[i];if(!card)return;
+ const v=state.draft[i],d=v.deg,prev=prevReading(i),sat=isSat(d),inspected=d!==null,changed=inspected && prev && Math.abs(d-prev.deg)>=.05;
+ card.classList.toggle('changed',!!changed);
+ card.classList.toggle('saved',state.savedMode);
+ card.querySelector('.name').value=v.name;
+ card.querySelector('.graphic').innerHTML=dial(d,BASE[i].tipo);
+ card.querySelector('.readout').textContent=inspected?`${d.toLocaleString('pt-BR',{maximumFractionDigits:1})}° · ${clock(d)}`:'—';
+ const st=card.querySelector('.state');st.textContent=!inspected?'SEM LEITURA':sat?'SATURADA':'EM FAIXA';st.className='state '+(!inspected?'pending':sat?'sat':'normal');
+  const previous=card.querySelector('.previous');previous.replaceChildren();
+  previous.classList.toggle('hidden',!prev);
+  if(prev){
+   const first=document.createElement('div');first.textContent=`Anterior: ${prev.deg.toLocaleString('pt-BR')}° · ${formatDate(prev.date)}`;previous.appendChild(first);
+   if(inspected){const second=document.createElement('div');second.className='delta';const delta=Math.round((d-prev.deg)*10)/10;second.textContent=Math.abs(delta)<.05?'Sem mudança':`${delta>0?'+':''}${delta.toLocaleString('pt-BR')}°`;second.classList.add(changed?'changed':'equal');previous.appendChild(second);}
+  }
+ card.querySelector('.deg').value=inspected?d:'';
+ card.querySelector('.hour').value=inspected?clock(d):'';
+ card.querySelector('.slider').value=inspected?d:45;
+ card.querySelector('.obs').value=v.obs;
+ card.querySelector('.photoCount').textContent=v.photoId?'● Foto anexada':'';
+ card.querySelectorAll('input,button').forEach(el=>el.disabled=state.savedMode);
+ card.querySelector('.photoBtn').disabled=false; card.querySelector('.photoBtn').textContent=v.photoId?'Ver foto':'Anexar foto';
+}
+function setReading(i,d){if(state.savedMode)return;state.draft[i].deg=normDeg(d);updateCard(i);persist();updateStats();}
+function updateStats(){
+  const furnace=currentFurnace();
+  const keys=BASE.map((v,i)=>v.forno===furnace?i:null).filter(i=>i!==null);
+  byId('sumTotal').textContent=keys.length;
+  byId('sumInspected').textContent=keys.filter(i=>state.draft[i].deg!==null).length;
+  byId('sumSaturated').textContent=keys.filter(i=>isSat(state.draft[i].deg)).length;
+  byId('sumChanged').textContent=keys.filter(i=>state.draft[i].deg!==null&&prevReading(i)!==null&&Math.abs(state.draft[i].deg-prevReading(i).deg)>=.05).length;
+  byId('sumHistory').textContent=state.history.filter(s=>keys.some(i=>s.values[i]!==null)).length;
+  byId('ribbon').textContent=`${furnace} · ${currentSide==='Todos'?'Ambos os lados':('Lado '+currentSide)} · ${state.savedMode?'Consulta': 'Em edição'} · ${formatDate(state.meta.date)}`;
+  byId('saveInspection').disabled=state.savedMode;
+  byId('inspectionDate').disabled=state.savedMode; byId('inspector').disabled=state.savedMode; byId('generalNote').disabled=state.savedMode;
+}
+function updateAll(){byId('inspectionDate').value=state.meta.date;byId('inspector').value=state.meta.inspector;byId('generalNote').value=state.meta.notes;
+ for(let i=0;i<N;i++)updateCard(i);updateStats();filter();}
+function filter(){
+ const q=byId('search').value.toLocaleLowerCase('pt-BR').trim(),a=byId('filterArea').value;
+ let visible=0;
+ app.querySelectorAll('.zoneGroup').forEach(g=>{
+  let n=0;
+  g.querySelectorAll('.card').forEach(c=>{
+    const i=+c.dataset.index,v=BASE[i];
+    const match=(v.zona+' '+v.area+' '+v.burner+' '+v.tipo+' '+state.draft[i].name).toLocaleLowerCase('pt-BR').includes(q);
+    const show=match&&(a==='Todas'||a===v.area)&&(currentSide==='Todos'||valveSide(v)===currentSide);
+    c.classList.toggle('hidden',!show);if(show){n++;visible++}
+  });
+  g.classList.toggle('hidden',n===0);
+ });
+ byId('sumVisible').textContent=visible;
+ updateSideButtons();
+}
+function updateSideButtons(){
+  document.querySelectorAll('.sideOption').forEach(b=>{
+    const active=b.dataset.side===currentSide;
+    b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));
+  });
+}
+function selectFurnace(next){
+ const old=state.savedMode?state.savedId:null;
+ if(state.savedMode && lastFurnace!==next){
+   state.savedMode=false;state.savedId=null;
+   // Inspeção salva permanece íntegra no histórico; libera um novo rascunho ao trocar de forno.
+   const snap=state.history.find(s=>s.id===old);
+   if(snap){state.draft.forEach((v,i)=>{if(snap.values[i]!==null){v.deg=null;v.obs='';v.photoId=null;}})}
+   persist();
+ }
+ lastFurnace=next;buildPanel();
+ updateFlash(`${next} selecionado · 80 válvulas cadastradas.`);
+}
+byId('filterForno').addEventListener('change',e=>selectFurnace(e.target.value));
+document.querySelectorAll('.sideOption').forEach(b=>b.addEventListener('click',()=>{
+ currentSide=b.dataset.side;filter();updateStats();
+}));
+function newInspection(){const dirty=state.draft.some(v=>v.deg!==null || v.obs.trim()!=='' || v.photoId!==null)&&!state.savedMode;
+ if(dirty&&!confirm('Iniciar nova inspeção? Leituras ainda não salvas serão apagadas.'))return;
+ state.draft=state.draft.map(v=>({name:v.name,deg:null,obs:'',photoId:null}));state.savedMode=false;state.savedId=null;
+ state.meta={date:nowDate(),inspector:state.meta.inspector,notes:''};persist();updateAll();updateFlash('Nova inspeção iniciada. As leituras antigas estão disponíveis como referência.');window.scrollTo({top:0,behavior:'smooth'});}
+function download(name,body,mime){const blob=new Blob([body],{type:mime});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500)}
+async function backupPayload(){
+ const ids=new Set([...state.draft,...state.history.flatMap(s=>s.values.filter(Boolean))].map(v=>v.photoId).filter(Boolean));
+ const photos={};let unavailable=0;
+ for(const id of ids){try{const blob=await photoGet(id);if(blob){photos[id]=await blobToDataURL(blob)}else unavailable++;}catch{unavailable++;}}
+ if(unavailable)updateFlash(`ATENÇÃO: ${unavailable} foto(s) do histórico não foram encontradas neste navegador. O backup não poderá incluí-las.`);
+ return JSON.stringify({format:'inspecao-valvulas-160-v1',exportedAt:new Date().toISOString(),...state,photos});
+}
+async function backupFile(){
+ const b=byId('backup');b.disabled=true;const old=b.textContent;b.textContent='Preparando backup com fotos...';
+ try {const d=nowDate(),stamp=new Date().toTimeString().slice(0,8).replaceAll(':','');
+  const payload=await backupPayload();
+  download(`backup_inspecoes_e_fotos_${state.meta.date}_gerado_${d}_${stamp}.json`,payload,'application/json;charset=utf-8');
+ } catch(err){alert('Não foi possível exportar o backup de fotos: '+err.message)}
+ finally{b.disabled=false;b.textContent=old;}
+}
+async function saveInspection(){
+ if(state.savedMode)return;
+ const furnace=currentFurnace();
+ const indexes=BASE.map((v,i)=>v.forno===furnace?i:null).filter(i=>i!==null);
+ const n=indexes.filter(i=>state.draft[i].deg!==null).length;
+ const missingAngles=indexes.filter(i=>state.draft[i].photoId&&state.draft[i].deg===null).length;
+ if(missingAngles){alert(`Há ${missingAngles} foto(s) sem posição. Informe os graus antes de salvar.`);return;}
+ if(!n){alert(`Nenhuma válvula do ${furnace} foi medida.`);return;}
+ if(!isoValid(byId('inspectionDate').value)){alert('Informe uma data válida.');return;}
+ if(n<80&&!confirm(`Você registrou ${n} de 80 válvulas do ${furnace}. Salvar esta inspeção parcial?`))return;
+ const savedAt=new Date().toISOString(),id='inspecao-'+savedAt+'-'+(state.history.length+1);
+ const snap={id,forno:furnace,date:state.meta.date,savedAt,inspector:state.meta.inspector,notes:state.meta.notes,names:state.draft.map(v=>v.name),values:state.draft.map((v,i)=>BASE[i].forno!==furnace||v.deg===null?null:{deg:v.deg,obs:v.obs,photoId:v.photoId||null})};
+ state.history.push(snap);state.savedMode=true;state.savedId=id;
+ const ok=localWrite(KEY,JSON.stringify(state));
+ updateAll();renderHistory();
+ if(folderRoot){
+   updateFolderStatus(`Salvando ${furnace} em pasta...`,'warning');
+   try{
+     await writeSnapshotToFolder(snap);await writeFolderIndex();
+     updateFolderStatus(`${furnace} gravado na pasta · aguarde sincronização do pasta sincronizada.`,'ok');
+     updateFlash(`${furnace} · ${n}/80 leituras gravadas na pasta local. Confirme a sincronização pelo pasta sincronizada.`);
+   }catch(err){
+     updateFolderStatus('Falha ao gravar na pasta: '+err.message,'error');
+     updateFlash(`Inspeção preservada ${ok?'no navegador':'somente na sessão'}, mas não confirmada na pasta. Exporte o JSON com fotos.`);
+     alert('Falha na gravação da pasta: '+err.message+'\nBaixe o JSON com fotos.');
+   }
+ }else{
+   updateFlash(`${furnace} · ${n}/80 leituras salvas no navegador. Exporte JSON com fotos no menu Transferência.`);
+   // Não gera um segundo download automático para evitar duplicidades no Android.
+ }
+}
+
+function enc(v){v=String(v??'');return /[;"\n\r]/.test(v)?'"'+v.replaceAll('"','""')+'"':v}
+function historyCSV(){let lines=['Inspecao_ID;Data;Data_hora_salvamento;Inspetor;Observacao_inspecao;Forno;Zona;Area;Queimador;Tipo;Nome_valvula;Graus;Relogio;Observacao_valvula'];
+ sortedHistory().forEach(s=>s.values.forEach((val,i)=>{if(val===null)return;const v=BASE[i];lines.push([s.id,s.date,s.savedAt,s.inspector,s.notes,v.forno,v.zona,v.area,v.burner,v.tipo,(s.names?.[i]||BASE[i].name),String(val.deg).replace('.',','),clock(val.deg),val.obs].map(enc).join(';'))}));
+ download('historico_inspecoes_valvulas.csv','\ufeff'+lines.join('\r\n'),'text/csv;charset=utf-8');updateFlash('Histórico exportado em CSV. Abra no Excel.');}
+function splitCSV(line){let out=[],str='',inQuotes=false;for(let j=0;j<line.length;j++){const c=line[j];if(c==='"'&&inQuotes&&line[j+1]==='"'){str+='"';j++;}else if(c==='"')inQuotes=!inQuotes;else if(c===';'&&!inQuotes){out.push(str);str='';}else str+=c;}out.push(str);return out;}
+async function importPositions(e){const file=e.target.files[0];e.target.value='';if(!file)return;if(state.savedMode){alert('Clique em “Nova inspeção” antes de importar novas posições.');return;}
+ const content=(await file.text()).replace(/^\ufeff/,'');const lines=content.split(/\r?\n/).filter(x=>x.trim());
+ const first=lines[0]?.toLocaleLowerCase('pt-BR')||'';const hasHeader=first.includes('graus')?1:0;
+ const index=new Map(BASE.map((v,i)=>[v.forno+'|'+v.burner+'|'+v.tipo,i]));let total=0;
+ for(let row=hasHeader;row<lines.length;row++){const p=splitCSV(lines[row]);if(p.length<7)continue;
+  const id=index.get(p[0].trim()+'|'+p[3].trim()+'|'+p[4].trim()),deg=normDeg(p[6].trim().replace(',','.'));
+  if(id===undefined||deg===null)continue;state.draft[id].deg=deg;if(p[5]?.trim())state.draft[id].name=p[5].trim();total++;
+ }
+ if(total){persist();updateAll();updateFlash(`${total} posições importadas no rascunho. Elas ainda precisam ser salvas como inspeção.`)}else alert('CSV incompatível. Use o formato com colunas Forno;Zona;Área;Queimador;Tipo;Válvula;Graus;Relógio.');}
+async function restoreBackup(e){const file=e.target.files[0];e.target.value='';if(!file)return;try{const input=JSON.parse(await file.text());if(input.format!=='inspecao-valvulas-160-v1')throw Error('Este arquivo não é um backup de inspeções compatível.');
+ const restored=normalize(input);if(!confirm(`Restaurar JSON com ${restored.history.length} inspeção(ões)? O histórico atual deste navegador será substituído.`))return;
+ let restoredPhotos=0;
+ if(input.photos&&typeof input.photos==='object'){
+  for(const [id,url] of Object.entries(input.photos)){
+   if(typeof id!=='string'||id.length>200||typeof url!=='string'||!url.startsWith('data:image/jpeg;base64,'))continue;
+   await photoPut(id,dataURLtoBlob(url));restoredPhotos++;
+  }
+ }
+ state=restored;const snapView=state.savedMode?state.history.find(s=>s.id===state.savedId):null;const fView=snapView?.forno||BASE.find((v,i)=>snapView?.values[i]!==null)?.forno;if(fView){byId('filterForno').value=fView;lastFurnace=fView;}persist();buildPanel();renderHistory();updateFlash(`Backup restaurado: ${state.history.length} inspeção(ões) e ${restoredPhotos} fotografia(s).`);
+ }catch(err){alert('Não foi possível restaurar o arquivo: '+err.message)}}
+function renderHistory(){const sorted=sortedHistory().reverse(),archives=byId('historyArchives');archives.replaceChildren();
+ if(!sorted.length){archives.textContent='Ainda não há inspeções salvas. Registre as posições medidas e clique em Salvar inspeção.';}
+ else sorted.forEach((s,i)=>{
+   const d=document.createElement('div');d.className='historyEntry';
+   const label=document.createElement('span');const n=s.values.filter(v=>v!==null).length;
+   label.textContent=`${i+1}. ${s.forno||'Forno misto'} · ${formatDate(s.date)} • ${n} válvulas registradas • ${s.inspector||'inspetor não informado'} • ${s.notes||'sem observação'}`;
+   const btn=document.createElement('button');btn.textContent='Abrir posições e fotos';btn.style.marginLeft='10px';
+   btn.addEventListener('click',()=>viewInspection(s.id));d.append(label,btn);archives.appendChild(d);
+  });
+ const before=byId('beforeSelect'),after=byId('afterSelect'),oldBefore=before.value,oldAfter=after.value;
+ before.replaceChildren();after.replaceChildren();sorted.forEach((s,i)=>{
+  const label=`${s.forno||'Geral'} · ${formatDate(s.date)} — ${s.inspector||'sem nome'} (${s.values.filter(x=>x!==null).length} leituras)`;
+  for(const box of [before,after]){const o=document.createElement('option');o.value=s.id;o.textContent=label;box.appendChild(o);}
+ });
+ if(sorted.length){after.value=sorted[0].id;before.value=sorted[1]?.id||sorted[0].id}
+ renderComparison();refreshPortableChoices();}
+function viewInspection(id){
+ const snap=state.history.find(s=>s.id===id);if(!snap)return;
+ if(!state.savedMode && state.draft.some(v=>v.deg!==null||v.photoId!==null||v.obs.trim()) && !confirm('Abrir uma inspeção salva? O rascunho atual não salvo será substituído.'))return;
+ const names=state.draft.map((v,i)=>snap.names?.[i]||v.name||BASE[i].name);
+ state.draft=snap.values.map((v,i)=>({name:names[i],deg:v===null?null:v.deg,obs:v===null?'':v.obs||'',photoId:v===null?null:v.photoId||null}));
+ state.meta={date:snap.date,inspector:snap.inspector,notes:snap.notes};state.savedMode=true;state.savedId=id;
+  const active=snap.forno||BASE.find((v,i)=>snap.values[i]!==null)?.forno;
+  if(active){byId('filterForno').value=active;lastFurnace=active;}
+  persist();buildPanel();updateFlash(`Visualização somente leitura: inspeção de ${formatDate(snap.date)}. Clique no botão de foto da válvula para consultar o registro fotográfico.`);
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function td(row,text,cls){const c=document.createElement('td');c.textContent=text;if(cls)c.className=cls;row.appendChild(c)}
+function renderComparison(){const body=byId('compareRows');body.replaceChildren();const prior=state.history.find(s=>s.id===byId('beforeSelect').value),later=state.history.find(s=>s.id===byId('afterSelect').value);
+ if(!prior||!later){byId('compareStats').textContent='Salve pelo menos duas inspeções para comparar datas diferentes.';return;}
+ const forno=byId('compareForno').value,onlyChanged=byId('onlyChanged').checked;
+ let changed=0,matched=0,onlyA=0,onlyB=0,shown=0;
+ for(let i=0;i<N;i++){const v=BASE[i];if(forno!=='Todos'&&v.forno!==forno)continue;
+  const a=prior.values[i],b=later.values[i];if(a===null&&b===null)continue;
+  const both=a!==null&&b!==null;const diff=both?Math.round((b.deg-a.deg)*10)/10:null;
+  const changedThis=both&&Math.abs(diff)>=.05;if(changedThis)changed++;
+  if(both)matched++;else if(a!==null)onlyA++;else onlyB++;
+  if(onlyChanged&&!changedThis)continue;
+  const row=document.createElement('tr');row.className=changedThis?'modified':both?'':'noComparison';
+  td(row,v.forno);td(row,'Z'+v.zona+' — '+v.area);td(row,v.burner);td(row,v.tipo);
+  td(row,a!==null?a.deg.toLocaleString('pt-BR')+'°':'—','number');td(row,b!==null?b.deg.toLocaleString('pt-BR')+'°':'—','number');
+  td(row,diff===null?'—':(diff>0?'+':'')+diff.toLocaleString('pt-BR')+'°','number');
+  td(row,!both?'Sem duas medições':changedThis?'ALTERADA':'Sem alteração');body.appendChild(row);shown++;
+ }
+ byId('compareStats').textContent=`Comparação ${formatDate(prior.date)} → ${formatDate(later.date)}: ${matched} válvulas com medições nas duas datas, ${changed} alterações, ${onlyA+onlyB} leituras sem par para comparação. ${shown} linhas exibidas.`;
+ if(prior.id===later.id)byId('compareStats').textContent+=' Selecione duas inspeções diferentes para comparar.';
+ if(!shown){const tr=document.createElement('tr');td(tr,'Nenhuma leitura disponível com os filtros escolhidos.');body.appendChild(tr);}
+}
+
+// ---------- Integração local por pasta sincronizada (sem API ou acesso remoto) ----------
+let folderRoot=null;
+let folderSavedIds=new Set();
+let folderPhotoMap=new Map();
+let folderBusy=false;
+function updateFolderStatus(message,kind='ok'){
+ const node=byId('folderState'); node.textContent=message;node.className=kind==='ok'?'':kind;
+ byId('syncFolder').disabled=!folderRoot||folderBusy;
+ byId('disconnectFolder').disabled=!folderRoot||folderBusy;
+ byId('chooseFolder').disabled=folderBusy;
+}
+function folderName(snap){return 'I_'+snap.id.replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,140)}
+function safePhotoName(snap,index,photoId){
+ const v=BASE[index];
+ return (v.forno==='Forno 1'?'F1':'F2')+'_Z'+v.zona+'_'+v.burner+'_'+(v.tipo==='Ar'?'AR':'GAS')+'_'+photoId.replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,140)+'.jpg';
+}
+async function writeFileIn(dir,name,body){
+ const h=await dir.getFileHandle(name,{create:true});
+ const w=await h.createWritable();
+ try{await w.write(body);await w.close()}catch(e){try{await w.abort()}catch(_){}throw e}
+}
+async function readMaybeFile(dir,name){
+ try{const h=await dir.getFileHandle(name);return await (await h.getFile()).text()}
+ catch(e){if(e.name==='NotFoundError')return null;throw e}
+}
+function snapshotCSV(snap,photoFiles){
+ const lines=['ID;Data;Salvo_em;Inspetor;Forno;Zona;Area;Queimador;Tipo;Valvula;Graus;Relogio;Observacao;Foto_arquivo'];
+ snap.values.forEach((value,i)=>{
+  if(value===null)return;
+  const v=BASE[i];const filename=value.photoId ? ('fotos/'+(photoFiles[value.photoId]||'')) : '';
+  const row=[snap.id,snap.date,snap.savedAt,snap.inspector,v.forno,v.zona,v.area,v.burner,v.tipo,(snap.names?.[i]||BASE[i].name),String(value.deg).replace('.',','),clock(value.deg),value.obs,filename];
+  lines.push(row.map(enc).join(';'));
+ });
+ return '\ufeff'+lines.join('\r\n');
+}
+async function writeSnapshotToFolder(snap){
+ if(!folderRoot)throw Error('Selecione uma pasta primeiro.');
+ const inspections=await folderRoot.getDirectoryHandle('Inspecoes',{create:true});
+ const dirname=folderName(snap),dir=await inspections.getDirectoryHandle(dirname,{create:true});
+ const already=await readMaybeFile(dir,'inspecao.json');
+ if(already){
+  const current=JSON.parse(already);
+  if(current.id!==snap.id || current.format!=='inspecao-valvulas-snapshot-v1') throw Error('Há um registro diferente com o mesmo nome de pasta. Nada foi substituído.');
+  folderSavedIds.add(snap.id);
+  for(const [id,filename] of Object.entries(current.photoFiles||{})){
+    const photoDir=await dir.getDirectoryHandle('fotos');
+    folderPhotoMap.set(id,{dir:photoDir,filename});
+  }
+  return false;
+ }
+ const photoFiles={};let photosDir=null;
+ const entries=snap.values.map((value,i)=>({value,i})).filter(e=>e.value&&e.value.photoId);
+ if(entries.length)photosDir=await dir.getDirectoryHandle('fotos',{create:true});
+ for(const {value,i} of entries){
+   const blob=await photoGet(value.photoId);
+   if(!blob)throw Error(`Foto não encontrada: ${BASE[i].forno}, ${BASE[i].burner} ${BASE[i].tipo}. O manifesto da inspeção NÃO foi finalizado.`);
+   const filename=safePhotoName(snap,i,value.photoId);
+   await writeFileIn(photosDir,filename,blob);
+   photoFiles[value.photoId]=filename;
+ }
+ await writeFileIn(dir,'leituras.csv',snapshotCSV(snap,photoFiles));
+ const manifest={format:'inspecao-valvulas-snapshot-v1',id:snap.id,date:snap.date,savedAt:snap.savedAt,inspector:snap.inspector,notes:snap.notes,names:snap.names||BASE.map(v=>v.name),values:snap.values,photoFiles};
+ // Manifesto escrito por último: uma pasta sem inspecao.json não é uma inspeção concluída.
+ await writeFileIn(dir,'inspecao.json',JSON.stringify(manifest,null,2));
+ folderSavedIds.add(snap.id);
+ for(const [id,filename] of Object.entries(photoFiles))folderPhotoMap.set(id,{dir:photosDir,filename});
+ return true;
+}
+async function writeFolderIndex(){
+ if(!folderRoot)return;
+ let summary=['ID;Data;Salvo_em;Inspetor;Medidas;Fotografias;Pasta'];
+ let all=['ID;Data;Salvo_em;Inspetor;Forno;Zona;Area;Queimador;Tipo;Valvula;Graus;Relogio;Observacao;Foto_relativa'];
+ for(const snap of sortedHistory()){
+  const dir='Inspecoes/'+folderName(snap);
+  const measured=snap.values.filter(Boolean).length;
+  const photos=snap.values.filter(v=>v&&v.photoId).length;
+  summary.push([snap.id,snap.date,snap.savedAt,snap.inspector,measured,photos,dir].map(enc).join(';'));
+  snap.values.forEach((value,i)=>{
+   if(!value)return;const v=BASE[i];const ph=value.photoId ? dir+'/fotos/'+safePhotoName(snap,i,value.photoId) : '';
+   all.push([snap.id,snap.date,snap.savedAt,snap.inspector,v.forno,v.zona,v.area,v.burner,v.tipo,(snap.names?.[i]||BASE[i].name),String(value.deg).replace('.',','),clock(value.deg),value.obs,ph].map(enc).join(';'));
+  });
+ }
+ await writeFileIn(folderRoot,'indice_inspecoes.csv','\ufeff'+summary.join('\r\n'));
+ await writeFileIn(folderRoot,'historico_posicoes.csv','\ufeff'+all.join('\r\n'));
+}
+async function loadInspectionsFromFolder(){
+ const inspections=await folderRoot.getDirectoryHandle('Inspecoes',{create:true});
+ const imported=[];let ignored=0,photos=0;
+ folderSavedIds.clear();folderPhotoMap.clear();
+ for await(const [dirName,entry] of inspections.entries()){
+   if(entry.kind!=='directory')continue;
+   try{
+     const payload=await readMaybeFile(entry,'inspecao.json');
+     if(!payload)continue;
+     const input=JSON.parse(payload);
+     if(input.format!=='inspecao-valvulas-snapshot-v1'||typeof input.id!=='string'||!Array.isArray(input.values)||input.values.length!==N){ignored++;continue;}
+     const valid=normalize({format:'inspecao-valvulas-160-v1',history:[input],draft:freshDraft()}).history[0];
+     imported.push(valid);folderSavedIds.add(valid.id);
+     if(input.photoFiles&&typeof input.photoFiles==='object'){
+       let dir=null;
+       try{dir=await entry.getDirectoryHandle('fotos')}catch(_){}
+       if(dir) for(const [id,filename] of Object.entries(input.photoFiles)){
+         if(typeof id==='string'&&typeof filename==='string'&&filename.endsWith('.jpg')&&!filename.includes('/')&&!filename.includes('\\')){
+           folderPhotoMap.set(id,{dir,filename});photos++;
+         }
+       }
+     }
+   }catch(e){ignored++}
+ }
+ let add=0,existing=new Set(state.history.map(s=>s.id));
+ for(const snap of imported){if(!existing.has(snap.id)){state.history.push(snap);existing.add(snap.id);add++}}
+ if(add){persist();renderHistory();updateAll()}
+ return {add,found:imported.length,ignored,photos};
+}
+async function connectFolder(){
+ if(typeof window.showDirectoryPicker!=='function'){
+  updateFolderStatus('Este navegador não permite escolher/gravar uma pasta diretamente. Use Chrome/Edge no Windows ou baixe o backup JSON e mova para a pasta sincronizada.','warning');
+  return;
+ }
+ try{
+  const handle=await window.showDirectoryPicker({id:'inspecoes-valvulas',mode:'readwrite'});
+  folderBusy=true;folderRoot=handle;updateFolderStatus('Lendo registros existentes na pasta...','warning');
+  const loaded=await loadInspectionsFromFolder();
+  updateFolderStatus(`Pasta: ${handle.name}. ${loaded.found} inspeção(ões) localizada(s), ${loaded.add} recuperada(s); ${state.history.length-folderSavedIds.size} registro(s) local(is) para sincronizar. ${loaded.ignored?'Ignorados: '+loaded.ignored+'.':''}`,'ok');
+  updateFlash(`Pasta selecionada: “${handle.name}”. As fotos existentes ficam acessíveis pela pasta. Os novos registros serão gravados localmente nela e sincronizados pelo pasta sincronizada.`);
+ }catch(e){
+  if(e.name!=='AbortError'){
+   folderRoot=null;folderSavedIds.clear();folderPhotoMap.clear();
+   updateFolderStatus('Não foi possível acessar a pasta: '+e.message,'error');
+   alert('Erro ao conectar à pasta: '+e.message);
+  }
+ }finally{folderBusy=false;if(folderRoot)updateFolderStatus(byId('folderState').textContent,'ok')}
+}
+async function syncPending(){
+ if(!folderRoot)return;
+ if(folderBusy)return;
+ folderBusy=true;
+ try{
+  const pending=sortedHistory().filter(s=>!folderSavedIds.has(s.id));
+  for(let n=0;n<pending.length;n++){
+   updateFolderStatus(`Gravando ${n+1}/${pending.length} inspeções pendentes na pasta...`,'warning');
+   await writeSnapshotToFolder(pending[n]);
+  }
+  await writeFolderIndex();
+  updateFolderStatus(`Pasta “${folderRoot.name}”: histórico atualizado; ${state.history.length} inspeção(ões) no total. Confira o status de sincronização do pasta sincronizada.`,'ok');
+  updateFlash('Inspeções pendentes e índices CSV gravados na pasta local. Verifique no pasta sincronizada se a sincronização ao pasta externa foi concluída.');
+ }catch(e){updateFolderStatus('Sincronização local interrompida: '+e.message,'error');alert('Não foi possível gravar tudo na pasta: '+e.message+'\\nUse o backup JSON como segurança.');}
+ finally{folderBusy=false;updateFolderStatus(byId('folderState').textContent,byId('folderState').className==='error'?'error':'ok')}
+}
+byId('chooseFolder').addEventListener('click',connectFolder);
+byId('syncFolder').addEventListener('click',syncPending);
+byId('disconnectFolder').addEventListener('click',()=>{
+ folderRoot=null;folderSavedIds.clear();folderPhotoMap.clear();
+ updateFolderStatus('Pasta desvinculada. Os registros já gravados no computador não foram apagados.','warning');
+});
+// ---------- Fim da integração por pasta ----------
+
+for(const id of ['search','filterForno','filterArea'])byId(id).addEventListener(id==='search'?'input':'change',filter);
+for(const id of ['beforeSelect','afterSelect','compareForno'])byId(id).addEventListener('change',renderComparison);
+byId('onlyChanged').addEventListener('change',renderComparison);
+byId('newInspection').addEventListener('click',newInspection);
+byId('saveInspection').addEventListener('click',saveInspection);
+byId('backup').addEventListener('click',backupFile);
+byId('historyCSV').addEventListener('click',historyCSV);
+byId('restore').addEventListener('change',restoreBackup);
+byId('importPositions').addEventListener('change',importPositions);
+byId('print').addEventListener('click',()=>window.print());
+byId('toggleHistory').addEventListener('click',()=>{byId('historyBody').classList.toggle('hidden');byId('toggleHistory').textContent=byId('historyBody').classList.contains('hidden')?'Mostrar histórico':'Ocultar histórico';});
+byId('inspectionDate').addEventListener('change',e=>{if(!isoValid(e.target.value)){e.target.value=state.meta.date;return;}state.meta.date=e.target.value;persist();updateAll();});
+byId('inspector').addEventListener('input',e=>{state.meta.inspector=e.target.value;persist();});
+byId('generalNote').addEventListener('input',e=>{state.meta.notes=e.target.value;persist();});
+
+// ---------- Fotografia associada à leitura manual (sem IA e sem servidor) ----------
+let photoIndex=null,photoBlob=null,photoBitmap=null;
+function photoDb(){return new Promise((resolve,reject)=>{
+ if(!('indexedDB' in window)){reject(Error('Armazenamento de imagens não disponível neste navegador.'));return;}
+ const rq=indexedDB.open('valvetrack_demo_fotos_v1',1);
+ rq.onupgradeneeded=()=>{if(!rq.result.objectStoreNames.contains('photos'))rq.result.createObjectStore('photos')};
+ rq.onsuccess=()=>resolve(rq.result);rq.onerror=()=>reject(rq.error);
+})}
+async function photoPut(id,blob){const db=await photoDb();return new Promise((resolve,reject)=>{
+ const tx=db.transaction('photos','readwrite');tx.objectStore('photos').put(blob,id);
+ tx.oncomplete=()=>{db.close();resolve(true)};tx.onerror=()=>{db.close();reject(tx.error)};
+})}
+async function photoGetLocal(id){const db=await photoDb();return new Promise((resolve,reject)=>{
+  const tx=db.transaction('photos','readonly'),r=tx.objectStore('photos').get(id);
+  r.onsuccess=()=>{db.close();resolve(r.result||null)};r.onerror=()=>{db.close();reject(r.error)};
+ })}
+async function photoGet(id){
+  let local=null,problem=null;
+  try{local=await photoGetLocal(id)}catch(e){problem=e}
+  if(local)return local;
+  const location=folderPhotoMap.get(id);
+  if(location){const fh=await location.dir.getFileHandle(location.filename);return fh.getFile()}
+  if(problem)throw problem;
+  return null;
+}
+function blobToDataURL(blob){return new Promise((resolve,reject)=>{const fr=new FileReader();fr.onload=()=>resolve(fr.result);fr.onerror=()=>reject(fr.error);fr.readAsDataURL(blob)})}
+function dataURLtoBlob(url){const [hdr,b64]=url.split(',');const bytes=atob(b64),a=new Uint8Array(bytes.length);for(let i=0;i<bytes.length;i++)a[i]=bytes.charCodeAt(i);return new Blob([a],{type:hdr.match(/data:([^;]+);/)?.[1]||'image/jpeg'})}
+function loadPhotoImage(blob){return new Promise((resolve,reject)=>{
+ const url=URL.createObjectURL(blob),img=new Image();img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};img.onerror=()=>{URL.revokeObjectURL(url);reject(Error('Imagem inválida.'))};img.src=url;
+})}
+async function shrinkPhoto(file){const image=await loadPhotoImage(file),can=document.createElement('canvas');
+ const scale=Math.min(1,1200/Math.max(image.naturalWidth,image.naturalHeight));
+ can.width=Math.max(1,Math.round(image.naturalWidth*scale));can.height=Math.max(1,Math.round(image.naturalHeight*scale));
+ can.getContext('2d').drawImage(image,0,0,can.width,can.height);
+ return await new Promise((resolve,reject)=>can.toBlob(b=>b?resolve(b):reject(Error('Não foi possível preparar a foto.')),'image/jpeg',0.78));
+}
+async function openPhoto(i){
+ photoIndex=i;photoBlob=null;photoBitmap=null;
+ byId('photoTitle').textContent=`${BASE[i].forno} • Queimador ${BASE[i].burner} • ${BASE[i].tipo}`;
+ byId('photoFile').value='';byId('photoAngle').value=state.draft[i].deg??'';
+ byId('photoOverlay').classList.remove('hidden');
+ byId('confirmPhoto').disabled=state.savedMode;
+ byId('photoFile').disabled=state.savedMode;
+ byId('photoAngle').disabled=state.savedMode;
+ byId('removePhoto').disabled=state.savedMode||!state.draft[i].photoId;
+ clearPhotoCanvas();
+ photoMessage(state.savedMode?'Inspeção salva. Esta fotografia é somente para consulta.':'Selecione uma foto e informe o ângulo observado; não há reconhecimento automático.');
+ const id=state.draft[i].photoId;
+ if(id){
+  try{const blob=await photoGet(id);if(blob){photoBlob=blob;await displayPhoto(blob);}else photoMessage('A foto vinculada não foi encontrada neste navegador. Restaure o backup JSON com fotos.');}
+  catch(e){photoMessage('Não foi possível recuperar a foto: '+e.message)}
+ }
+}
+function clearPhotoCanvas(){photoBitmap=null;const can=byId('photoCanvas');can.width=600;can.height=340;const ctx=can.getContext('2d');ctx.fillStyle='#172b42';ctx.fillRect(0,0,can.width,can.height);ctx.fillStyle='#d5e3ee';ctx.font='19px Segoe UI';ctx.textAlign='center';ctx.fillText('Nenhuma fotografia carregada',300,175)}
+async function displayPhoto(blob){
+ const img=await loadPhotoImage(blob),can=byId('photoCanvas'),scale=Math.min(1,750/Math.max(img.naturalWidth,img.naturalHeight));
+ can.width=Math.max(1,Math.round(img.naturalWidth*scale));can.height=Math.max(1,Math.round(img.naturalHeight*scale));
+ const ctx=can.getContext('2d');ctx.clearRect(0,0,can.width,can.height);ctx.drawImage(img,0,0,can.width,can.height);
+ photoBitmap=true;
+}
+function photoMessage(msg){byId('photoReadout').textContent=msg}
+byId('photoFile').addEventListener('change',async e=>{
+ const file=e.target.files[0];e.target.value='';if(!file)return;
+ try{const photo=await shrinkPhoto(file);photoBlob=photo;await displayPhoto(photo);photoMessage('Fotografia pronta. Confirme a posição que você observou em campo e salve a foto.');}
+ catch(err){photoMessage('Não foi possível abrir esta foto: '+err.message)}
+});
+byId('removePhoto').addEventListener('click',()=>{
+ const i=photoIndex;if(i===null||state.savedMode)return;
+ if(!confirm('Desvincular esta fotografia da inspeção atual? A posição anotada será mantida.'))return;
+ state.draft[i].photoId=null;photoBlob=null;clearPhotoCanvas();persist();updateCard(i);
+ byId('removePhoto').disabled=true;photoMessage('Fotografia desvinculada. Você pode anexar uma nova foto.');
+});
+byId('closePhoto').addEventListener('click',()=>{byId('photoOverlay').classList.add('hidden');photoIndex=null;photoBlob=null;});
+byId('confirmPhoto').addEventListener('click',async()=>{
+ const i=photoIndex,deg=normDeg(byId('photoAngle').value);
+ if(i===null||state.savedMode)return;
+ if(deg===null){alert('Preencha manualmente a posição, de 0° a 90°, antes de salvar a foto.');return;}
+ if(!photoBlob){alert('Tire ou selecione uma fotografia antes de salvar.');return;}
+ const btn=byId('confirmPhoto');btn.disabled=true;
+ try{
+  // Um novo ID conserva intactas as fotos de inspeções já salvas.
+  const id=`foto-${Date.now()}-${i}-${Math.floor(Math.random()*1e9)}`;
+  await photoPut(id,photoBlob);
+  state.draft[i].photoId=id;state.draft[i].deg=deg;
+  persist();updateCard(i);updateStats();
+  byId('photoOverlay').classList.add('hidden');photoIndex=null;photoBlob=null;
+  updateFlash(`Fotografia anexada à válvula ${BASE[i].forno} / ${BASE[i].burner} / ${BASE[i].tipo}. Posição manual: ${deg.toLocaleString('pt-BR')}°. Salve a inspeção e guarde o backup com fotos.`);
+ }catch(err){alert('Não foi possível guardar a fotografia: '+err.message)}
+ finally{btn.disabled=false;}
+});
+// ---------- Fim do módulo fotográfico ----------
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')byId('photoOverlay').classList.add('hidden')});
+let portableFile=null, portableSourceId=null;
+const resume=state.savedMode?state.history.find(s=>s.id===state.savedId):null;
+const resumeFurnace=resume?.forno||BASE.find((v,i)=>resume?.values[i]!==null)?.forno;
+if(resumeFurnace){byId('filterForno').value=resumeFurnace;lastFurnace=resumeFurnace;}
+buildPanel();renderHistory();
+if(!storageWorks)updateFlash('Armazenamento indisponível neste modo de abertura.');
+else if(migrated)updateFlash('Importei posições não nulas do painel anterior para o rascunho. Posições 0° anteriores não são assumidas como medidas; confira e registre 0° manualmente quando aplicável.');
+else if(state.history.length)updateFlash('Histórico carregado');
+else updateFlash('');
+
+
+// ---------- Transferência Android/PC (um registro por arquivo portátil) ----------
+function portableStatus(text,kind=''){
+ const e=byId('portableState');e.textContent=text;e.className='androidState '+kind;
+}
+function portableFilename(snap){
+ const unique=snap.id.replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,125);
+ return 'INSPECAO_VALVULAS_'+snap.date+'_'+unique+'.json';
+}
+function resetPrepared(){
+ portableFile=null;portableSourceId=null;
+ byId('sharePortable').disabled=true;byId('downloadPortable').disabled=true;
+}
+function refreshPortableChoices(){
+ const box=byId('portableSelect');if(!box)return;
+ const old=box.value;box.replaceChildren();
+ const snaps=sortedHistory().reverse();
+ if(!snaps.length){const opt=document.createElement('option');opt.value='';opt.textContent='Nenhuma inspeção salva';box.appendChild(opt)}
+ else snaps.forEach(s=>{
+  const opt=document.createElement('option');opt.value=s.id;
+  opt.textContent=`${s.forno||'Geral'} · ${formatDate(s.date)} • ${s.inspector||'sem inspetor'} • ${s.values.filter(Boolean).length} leituras`;
+  box.appendChild(opt);
+ });
+ if(snaps.some(s=>s.id===old))box.value=old;
+ else if(state.savedId&&snaps.some(s=>s.id===state.savedId))box.value=state.savedId;
+ if(box.value!==portableSourceId)resetPrepared();
+}
+async function makePortableFile(snapshotId){
+ const snap=state.history.find(s=>s.id===snapshotId);
+ if(!snap)throw Error('Selecione uma inspeção salva.');
+ const photos={};
+ const ids=[...new Set(snap.values.filter(v=>v&&v.photoId).map(v=>v.photoId))];
+ for(let i=0;i<ids.length;i++){
+  portableStatus(`Preparando fotografia ${i+1} de ${ids.length}...`);
+  const blob=await photoGet(ids[i]);
+  if(!blob)throw Error(`Uma fotografia desta inspeção não foi encontrada (${i+1}/${ids.length}). Conecte a pasta onde está salva e tente novamente.`);
+  photos[ids[i]]=await blobToDataURL(blob);
+ }
+ const json=JSON.stringify({format:'inspecao-valvulas-portatil-v1',exportedAt:new Date().toISOString(),transport:'serviço de arquivos (gateway manual) → PC → pasta externa (Historian)',snapshot:snap,photos});
+ // Max size is not forced; the receiving Android share target may reject large files.
+ return new File([json],portableFilename(snap),{type:'application/json'});
+}
+byId('portableSelect').addEventListener('change',()=>{
+ resetPrepared();portableStatus('Clique em Preparar arquivo com fotos para exportar esta inspeção.');
+});
+byId('preparePortable').addEventListener('click',async()=>{
+ const btn=byId('preparePortable'),id=byId('portableSelect').value;
+ if(!id){portableStatus('Primeiro salve uma inspeção.','warning');return}
+ btn.disabled=true;resetPrepared();
+ try{
+  const file=await makePortableFile(id);
+  portableFile=file;portableSourceId=id;
+  byId('sharePortable').disabled=false;byId('downloadPortable').disabled=false;
+  portableStatus(`Arquivo pronto: ${file.name} (${(file.size/1048576).toFixed(2)} MB). No Android, use Compartilhar e selecione o serviço de arquivos permitido; se não aparecer, baixe o JSON e envie-o manualmente pelo Drive. O painel NÃO confirma o upload.`, 'ok');
+ }catch(e){portableStatus('Não foi possível preparar o registro: '+e.message,'error');}
+ finally{btn.disabled=false}
+});
+byId('sharePortable').addEventListener('click',()=>{
+ if(!portableFile)return;
+ if(typeof navigator.share!=='function'||typeof navigator.canShare!=='function'||!navigator.canShare({files:[portableFile]})){
+  portableStatus('Compartilhamento indisponível neste navegador. Use Baixar JSON, abra o serviço de arquivos autorizado e faça o upload manualmente. Se houver restrição de perfil corporativo, não tente contorná-la.','warning');
+  return;
+ }
+ // navigator.share deve ser chamado imediatamente a partir do clique do usuário.
+ navigator.share({files:[portableFile],title:'ValveTrack Demonstração',text:'Arquivo portátil de inspeção com fotos para transferência autorizada'}).then(()=>{
+  portableStatus('O Android entregou o arquivo ao aplicativo escolhido. Confira no serviço de arquivos autorizado se o upload realmente terminou antes de sair ou apagar arquivos locais.','ok');
+ }).catch(e=>{
+  if(e.name==='AbortError')portableStatus('Compartilhamento cancelado. Você ainda pode baixar o arquivo.','warning');
+  else portableStatus('Não foi possível compartilhar: '+e.message+'. Use Baixar JSON e faça o upload manual no Drive, se autorizado.','error');
+ });
+});
+byId('downloadPortable').addEventListener('click',()=>{
+ if(!portableFile)return;
+ download(portableFile.name,portableFile,'application/json');
+ portableStatus('Download do JSON iniciado. Abra o serviço de arquivos autorizado, envie o arquivo e confirme que ele apareceu na pasta de transferência. No PC, baixe e importe pelo botão 3.','warning');
+});
+byId('importPortable').addEventListener('change',async e=>{
+ const file=e.target.files?.[0];e.target.value='';if(!file)return;
+ try{
+  const raw=JSON.parse(await file.text());
+  if(raw.format!=='inspecao-valvulas-portatil-v1'||!raw.snapshot||!Array.isArray(raw.snapshot.values)||raw.snapshot.values.length!==N)
+    throw Error('O arquivo não é uma inspeção portátil compatível.');
+  const snap=normalize({history:[raw.snapshot],draft:freshDraft()}).history[0];
+  if(!snap.id||snap.id.length>210)throw Error('Identificador inválido.');
+  if(state.history.some(s=>s.id===snap.id)){
+   portableStatus('Esta inspeção já existe no histórico. Nenhuma leitura ou foto foi sobrescrita.','warning');return;
+  }
+  const ids=[...new Set(snap.values.filter(v=>v?.photoId).map(v=>v.photoId))];
+  for(const id of ids){
+   if(typeof raw.photos?.[id]!=='string'||!/^data:image\/jpeg;base64,/.test(raw.photos[id]))
+    throw Error('Faltam fotografias do arquivo portátil. Importe o arquivo completo gerado no celular.');
+  }
+  if(!confirm(`Importar inspeção de ${formatDate(snap.date)}, com ${snap.values.filter(Boolean).length} leituras e ${ids.length} fotografia(s)? O histórico existente será mantido.`))return;
+  for(let i=0;i<ids.length;i++){
+   portableStatus(`Armazenando fotografia ${i+1}/${ids.length}...`);
+   await photoPut(ids[i],dataURLtoBlob(raw.photos[ids[i]]));
+  }
+  state.history.push(snap);persist();renderHistory();updateAll();
+  portableStatus(`Inspeção de ${formatDate(snap.date)} importada (${ids.length} foto(s)). Histórico preservado. ${folderRoot?'Clique em Gravar pendentes na pasta (PC) e confirme a sincronização no pasta sincronizada.':'Selecione a pasta pasta externa sincronizada pelo pasta sincronizada e clique em Gravar pendentes na pasta (PC).'}`,'ok');
+ }catch(e){portableStatus('Falha na importação: '+e.message,'error');}
+});
+// Inicializa a lista após o carregamento completo da página e das inspeções locais.
+refreshPortableChoices();
+// ---------- Fim da transferência Android/PC ----------
+
+// PWA: recursos de instalação/offline exigem origem segura (HTTPS/localhost).
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost' || location.hostname==='127.0.0.1')){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'})
+    .then(()=>{const e=byId('pwaState');if(e)e.textContent='PWA pronta';})
+    .catch(()=>{const e=byId('pwaState');if(e)e.textContent='Modo navegador';}));
+}else{
+  const e=byId('pwaState');if(e)e.textContent='Prévia local';
+}
+</script>
+</body>
+</html>
